@@ -24,7 +24,9 @@ Version 1 scored gaits on a no-physics model of the lecturer's MATLAB spider. Th
 
 Self-checks (run from this folder): `python -m part1_ga.gait`, `python -m part1_ga.body`, `python -m part1_ga.ga` and `python -m part1_ga.plots`. In Webots: `controllerArgs ["selftest=1"]` checks that physics is repeatable.
 
-Requires Python 3 with numpy and matplotlib. Webots must run the controllers with a Python that has numpy (here `python` on PATH is Python 3.13).
+Install everything with `python -m pip install -r ../requirements.txt` (numpy, matplotlib, pillow, and torch for the PyTorch comparison). Webots must run the controllers with a Python that has numpy (here `python` on PATH is Python 3.13). If the trainer fails with `No module named numpy`, either:
+- set Webots → Tools → Preferences → Python command to that Python's `python.exe`; or
+- run `pip install numpy` for the Python that Webots uses.
 
 ## Files
 | File | What it does |

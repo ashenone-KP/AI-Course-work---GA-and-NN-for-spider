@@ -6,4 +6,6 @@
 | `Spider_world_demo/` | The Webots world and controllers. `ga_trainer` runs the GA live; `gait_player` plays a saved gait. |
 | `archive/spider_cw_v1/` | Version 1: a GA scored on a no-physics model of the lecturer's MATLAB spider. Its gaits didn't transfer to Webots, and why is explained in `spider_cw/docs/design.txt`. |
 
+Setup: install Webots R2025a, then run `python -m pip install -r requirements.txt` from this folder.
+
 The module's spec and MATLAB files are not included.
