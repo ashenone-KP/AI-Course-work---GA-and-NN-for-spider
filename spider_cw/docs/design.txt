@@ -108,14 +108,51 @@ Each term answers a failure seen in Webots:
 * Physics is deterministic (the self-check walks one gait 3 times: identical to 1e-6, and the
   live run reproduced the headless run exactly), so scores are cached per chromosome.
 
-4. GA (part1_ga/ga.py) - unchanged from version 1
---------------------------------------------------
-Tournament selection (k=3), blend crossover (BLX-0.5, circular for phases), adaptive Gaussian
-mutation (rate 0.05, sigma decays with generations and stalling), elitism 2. In version 1's
-operator experiments (5 seeds each) this was the best combination: tournament 6.0 vs roulette
-1.5; blend 6.0 vs uniform 4.5 vs two-point 2.4; adaptive sigma with half the spread of a fixed
-sigma. Population 40 here (each evaluation is a physics run); 100 generations. The shared
-encoding uses its own bounds (gait.SHARED_LOW/HIGH/WRAP) with the same operators.
+4. GA (part1_ga/ga.py) and operator experiments in physics
+----------------------------------------------------------
+Operators: tournament selection (k=3), blend crossover (BLX-0.5, circular for phases), Gaussian
+mutation (per-gene rate 0.05; sigma adaptive: decays with generations and halves when the best
+stalls), elitism 2, population 40. All are trainer options (selection=, crossover=, adaptive=,
+mrate=, pop=), and part1_ga/ga.py's self-check validates them on test functions first.
+
+They were compared in physics (part1_ga/operator_experiments.py; outputs/operators/): each variant
+changes one setting of the reference setup (push-pull encoding, full fitness incl. the tilt rule,
+40 x 60 generations), 3 seeds each, every gait walked in Webots with self-collision.
+    final best fitness (mean +- std over 3 seeds) | forward distance of the best gait (2-cycle test)
+    selection   tournament           +0.35 +- 0.30   0.76 m
+                roulette             +0.28 +- 0.08   0.45 m
+    crossover   blend                +0.35 +- 0.30   0.76 m
+                uniform              +0.35 +- 0.25   0.35 m
+                two-point            -0.09 +- 0.57   0.38 m
+    mutation    adaptive, rate 0.05  +0.35 +- 0.30   0.76 m
+                fixed sigma          +0.48 +- 0.15   0.66 m
+                rate 0.01            -0.25 +- 0.28   0.37 m
+                rate 0.2             +0.51 +- 0.09   0.96 m
+    population  20                   +0.14 +- 0.51   0.84 m
+                40                   +0.35 +- 0.30   0.76 m
+                80                   +0.68 +- 0.43   0.89 m
+What it shows (3 seeds, so differences within one std are not conclusive):
+* Selection: tournament reaches the best gaits (0.76 m vs 0.45 m); roulette is steadier but its
+  pressure is weak late on, when scores are close and some are negative (they are shifted
+  before the roulette wheel), so it stops improving. Tournament only compares ranks, so it keeps
+  constant pressure whatever the scale - the reason it is the default.
+* Crossover: two-point is clearly worst (lowest mean, largest spread). It cuts the chromosome into
+  blocks, but the hip fan, shared posture, swing and phase genes only work together. Blend and
+  uniform tie on fitness; blend's best gait walks twice as far (0.76 vs 0.35 m). Blend samples
+  between and around two good parents, so children stay coherent: kept as the default. The same
+  ranking (blend first, two-point last) was found in version 1 on the no-physics model.
+* Mutation rate is the biggest effect: 0.01 barely explores and stalls (all seeds below 0);
+  0.2 is best and the most consistent. With only 12 genes, rate 0.05 mutates 0.6 genes per child
+  on average, so most children are pure crossover; 0.2 mutates ~2.4. Version 1 found 0.05 best,
+  but that encoding had 28 genes (1.4 per child): the right per-gene rate scales with 1/genes.
+  A fixed sigma also beat the adaptive one in these short runs: the adaptive sigma decays
+  linearly over the run, and in 60 generations it shrinks before the search has explored.
+* Population: 80 is best, 20 worst and least reliable (one seed ended negative); 80 costs twice
+  the simulation time of 40.
+Conclusion: for this 12-gene encoding a higher mutation rate (~0.2) and, if time allows, a larger
+population would be better defaults than the version-1 values. The reference gaits (pi0 etc.)
+were evolved with the old defaults over 100 generations; the operators above were not re-tuned
+for them.
 
 5. Visualisation
 ----------------

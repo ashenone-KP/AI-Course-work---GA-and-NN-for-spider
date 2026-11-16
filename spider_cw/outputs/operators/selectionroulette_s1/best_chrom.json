@@ -1,0 +1,53 @@
+{
+ "fitness": 0.37862517323669076,
+ "generation": 55,
+ "components": {
+  "forward": 0.9083733435713253,
+  "drift": 0.026075003966482144,
+  "turn": -0.0100297892374277,
+  "min_height": 0.3162823043424508,
+  "low_time": 0.0,
+  "fell": 0.0,
+  "lift": 1.0,
+  "idle_legs": 0.0,
+  "slide": 3.372319245775599,
+  "pitch": 0.04588399905466823,
+  "nose_down": -0.0335646103384683,
+  "skipped": 0.0,
+  "collision": 0.0
+ },
+ "options": {
+  "pop": 40,
+  "gens": 60,
+  "seed": 1,
+  "period": 2.0,
+  "cycles": 2,
+  "show": 0,
+  "name": "operators/selectionroulette_s1",
+  "selftest": 0,
+  "measure": null,
+  "encoding": "pushpi",
+  "pitch": 1,
+  "slip": 0.3,
+  "start": null,
+  "target": null,
+  "selection": "roulette",
+  "crossover": "blend",
+  "adaptive": 1,
+  "mrate": 0.05
+ },
+ "chromosome": [
+  -0.7643768258219404,
+  -0.6769174722609058,
+  0.5649165575278611,
+  0.7315818037472192,
+  -1.2793540066335527,
+  0.9759349218473179,
+  0.1819693702879559,
+  0.42482234111591666,
+  0.21159718143200432,
+  4.647381297631352,
+  2.2516551096572996,
+  3.141592653589793
+ ]
+}

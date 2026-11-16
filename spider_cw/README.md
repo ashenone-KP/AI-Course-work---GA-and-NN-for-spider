@@ -33,6 +33,7 @@ Requires Python 3 with numpy and matplotlib. Webots must run the controllers wit
 | `part1_ga/ga.py` | generic real-valued GA: tournament/roulette, uniform/two-point/blend crossover, adaptive Gaussian mutation, elitism; validated on test functions |
 | `part1_ga/body.py` | Webots spider geometry: forward kinematics, self-collision pre-check, 3D pose plot |
 | `part1_ga/plots.py` | fitness, components, mutation σ, pose snapshots, joint angles, footfall diagram, GIF |
+| `part1_ga/operator_experiments.py` | runs the GA operator comparisons headless in Webots (several at a time) and summarises them |
 | `../Spider_world_demo/controllers/ga_trainer/` | the GA running in Webots: physics fitness, per-leg measurement, live replay, saving |
 | `../Spider_world_demo/controllers/gait_player/` | plays a saved gait |
 | `docs/design.txt` | encoding, fitness, GA and visualisation choices, with the evidence behind each |
@@ -65,6 +66,12 @@ The table of all 8 configurations is in `docs/design.txt` §6:
 - with and without the tilt rule.
 
 Every run is kept in `outputs/`.
+
+**GA operator experiments in physics** (`python -m part1_ga.operator_experiments run`, then `summarise`; results in `outputs/operators/`, discussion in `docs/design.txt` §4). These compare selection, crossover, mutation and population size, 3 seeds each:
+- tournament beats roulette;
+- blend crossover beats two-point;
+- a mutation rate of 0.2 beats 0.05 and 0.01 for this 12-gene encoding;
+- population 80 beats 40, which beats 20.
 
 Known weaknesses (`docs/design.txt` §7):
 - Results vary a lot by seed.

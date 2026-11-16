@@ -25,7 +25,7 @@
 
 ## Next steps
 1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §7).
-2. **Optional:** re-run the operator experiments in physics (several seeds per variant, headless) to replace version 1's numbers.
+2. ~~Operator experiments in physics~~ Done: `outputs/operators/`, `docs/design.txt` §4. They suggest a mutation rate of about 0.2 for the 12-gene encoding.
 3. **Optional:** draw the footfall diagram from measured contacts (the trainer's `measure=` already prints them) instead of commanded angles.
 4. **Part 2 (in progress):** options A + E, sharing the from-scratch numpy core `part2_nn/nn.py`. Its self-check passes: gradient check, SGD and Adam convergence, save/load.
    - **A (main):** `[sin φ, cos φ, speed]` → 24 angles. The training gaits come from the trainer's `target=` mode, refined from `ref10_2` at 6 target distances (`outputs/speed0*`).

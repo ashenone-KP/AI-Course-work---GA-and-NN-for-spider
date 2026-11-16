@@ -1,0 +1,21 @@
+BASE {'pop': 40, 'gens': 60, 'encoding': 'pushpi'}, seeds (0, 1, 2); final = best fitness after the last generation (mean +- std over seeds)
+
+selection
+  tournament           final fitness +0.351 +- 0.298   forward of best 0.76 m (seeds: +0.08, +0.77, +0.20)
+  roulette             final fitness +0.278 +- 0.077   forward of best 0.45 m (seeds: +0.19, +0.38, +0.26)
+
+crossover
+  blend                final fitness +0.351 +- 0.298   forward of best 0.76 m (seeds: +0.08, +0.77, +0.20)
+  uniform              final fitness +0.351 +- 0.248   forward of best 0.35 m (seeds: +0.18, +0.70, +0.17)
+  two_point            final fitness -0.085 +- 0.572   forward of best 0.38 m (seeds: -0.13, +0.64, -0.76)
+
+mutation
+  adaptive, rate 0.05  final fitness +0.351 +- 0.298   forward of best 0.76 m (seeds: +0.08, +0.77, +0.20)
+  fixed sigma          final fitness +0.480 +- 0.153   forward of best 0.66 m (seeds: +0.65, +0.52, +0.28)
+  rate 0.01            final fitness -0.254 +- 0.282   forward of best 0.37 m (seeds: -0.65, -0.11, -0.00)
+  rate 0.2             final fitness +0.510 +- 0.092   forward of best 0.96 m (seeds: +0.63, +0.41, +0.48)
+
+population
+  pop 20               final fitness +0.141 +- 0.511   forward of best 0.84 m (seeds: +0.14, +0.77, -0.48)
+  pop 40               final fitness +0.351 +- 0.298   forward of best 0.76 m (seeds: +0.08, +0.77, +0.20)
+  pop 80               final fitness +0.677 +- 0.430   forward of best 0.89 m (seeds: +0.43, +0.32, +1.28)

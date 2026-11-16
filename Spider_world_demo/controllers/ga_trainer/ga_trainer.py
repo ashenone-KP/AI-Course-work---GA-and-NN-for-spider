@@ -11,6 +11,9 @@ controllerArgs as key=value, e.g.  [ "pop=24" "gens=40" "seed=0" "name=run0" ]:
                               at pi (front legs pull, hind legs push); "legs": per-leg, 26 genes
     pitch 1                   1: penalise body tilt beyond PITCH_FREE; 0: no tilt term
     slip 0.3                  penalty per metre of foot sliding (SLIP_PENALTY)
+    selection tournament      GA operators (part1_ga/ga.py): selection tournament|roulette,
+    crossover blend           crossover uniform|two_point|blend, adaptive 1|0 (adaptive or fixed
+    adaptive 1, mrate 0.05    mutation sigma), mrate = per-gene mutation probability
     target <m>                walk this far per evaluation instead of as far as possible: the forward
                               term becomes -2 x |forward - target| (makes a family of gaits at set
                               speeds, the training data for the Part 2 neural network)
@@ -92,15 +95,18 @@ def leg_metrics(pos, rot, angles):
 
 def parse_args(argv):
     opts = {"pop": 24, "gens": 40, "seed": 0, "period": 2.0, "cycles": 2, "show": 1, "name": None, "selftest": 0,
-            "measure": None, "encoding": "shared", "pitch": 1, "slip": SLIP_PENALTY, "start": None, "target": None}
+            "measure": None, "encoding": "shared", "pitch": 1, "slip": SLIP_PENALTY, "start": None, "target": None,
+            "selection": "tournament", "crossover": "blend", "adaptive": 1, "mrate": 0.05}
     for a in argv:
         key, _, value = a.partition("=")
         if key not in opts:
             raise SystemExit(f"ga_trainer: unknown option {key!r}; known: {', '.join(opts)}")
-        opts[key] = (value if key in ("name", "measure", "encoding", "start")
-                     else float(value) if key in ("period", "slip", "target") else int(value))
+        opts[key] = (value if key in ("name", "measure", "encoding", "start", "selection", "crossover")
+                     else float(value) if key in ("period", "slip", "target", "mrate") else int(value))
     if opts["encoding"] not in ("shared", "pushpull", "pushpi", "legs"):
         raise SystemExit("ga_trainer: encoding must be shared, pushpull, pushpi or legs")
+    if opts["selection"] not in ("tournament", "roulette") or opts["crossover"] not in ("uniform", "two_point", "blend"):
+        raise SystemExit("ga_trainer: selection = tournament|roulette, crossover = uniform|two_point|blend")
     opts["name"] = opts["name"] or f"run{opts['seed']}"
     return opts
 
@@ -240,7 +246,9 @@ class Trainer:
 
     def train(self):
         o = self.opts
-        cfg = GAConfig(pop_size=o["pop"], generations=o["gens"], stall_generations=o["gens"], seed=o["seed"])
+        cfg = GAConfig(pop_size=o["pop"], generations=o["gens"], stall_generations=o["gens"], seed=o["seed"],
+                       selection=o["selection"], crossover=o["crossover"], adaptive_mutation=bool(o["adaptive"]),
+                       mutation_rate=o["mrate"])
         low, high, wrap = {"shared": (gait.SHARED_LOW, gait.SHARED_HIGH, gait.SHARED_WRAP),
                            "pushpull": (gait.PUSHPULL_LOW, gait.PUSHPULL_HIGH, gait.PUSHPULL_WRAP),
                            "pushpi": (np.append(gait.SHARED_LOW, np.pi), np.append(gait.SHARED_HIGH, np.pi),

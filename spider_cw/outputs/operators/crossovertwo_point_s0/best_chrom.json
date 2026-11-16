@@ -1,0 +1,53 @@
+{
+ "fitness": -0.13293932885092086,
+ "generation": 60,
+ "components": {
+  "forward": 0.005362356965964645,
+  "drift": 0.0012010089761357759,
+  "turn": -0.0009332186347577043,
+  "min_height": 0.25336625027874005,
+  "low_time": 0.0,
+  "fell": 0.0,
+  "lift": 1.0,
+  "idle_legs": 0.0,
+  "slide": 0.9290335598258809,
+  "pitch": 0.18950816802122483,
+  "nose_down": 0.18950816802122483,
+  "skipped": 0.0,
+  "collision": 0.0
+ },
+ "options": {
+  "pop": 40,
+  "gens": 60,
+  "seed": 0,
+  "period": 2.0,
+  "cycles": 2,
+  "show": 0,
+  "name": "operators/crossovertwo_point_s0",
+  "selftest": 0,
+  "measure": null,
+  "encoding": "pushpi",
+  "pitch": 1,
+  "slip": 0.3,
+  "start": null,
+  "target": null,
+  "selection": "tournament",
+  "crossover": "two_point",
+  "adaptive": 1,
+  "mrate": 0.05
+ },
+ "chromosome": [
+  0.6951607620838887,
+  0.7245954657802407,
+  0.5045036463002861,
+  1.1071980070225873,
+  -1.1735319007943201,
+  1.0,
+  0.0,
+  0.4140835350543133,
+  0.005106852512749465,
+  5.426410725722254,
+  1.2989390730245858,
+  3.141592653589793
+ ]
+}
