@@ -23,20 +23,24 @@ from part1_ga.operator_experiments import ROOT, WEBOTS, WORLDS
 from part2_nn import nn
 from part2_nn.ik.ik_data import (MOTOR_HI, MOTOR_LO, SIGN, feet_of, foot_error_cm, from_per_leg, per_leg,
                                  unscale)
-from part2_nn.ik.train import LEG_MODEL_PATH, MODEL_PATH, OUT
+from part2_nn.ik.train import LEG_MODEL_PATH, LEG_MOTOR_MODEL_PATH, MODEL_PATH, OUT
 
 GAITS = ("pi0", "ref10_2", "shared1", "straight045_tuned")
 CYCLES = 4
 
 
 def predict(feet):
-    """Foot positions (n, 24) -> {"body": angles, "leg": angles}, both (n, 24) motor angles."""
+    """Foot positions (n, 24) -> {"body", "leg"[, "leg_motor"]: (n, 24) motor angles} (leg_motor: the
+    per-leg network trained on the full motor range, if train.py --leg-motor has been run)."""
     model, extra = nn.load(MODEL_PATH)
-    leg_model, leg_extra = nn.load(LEG_MODEL_PATH)
+    out = {"body": unscale(model.forward((feet - extra["mean"]) / extra["std"]))}
     f, _ = per_leg(feet, np.zeros_like(feet))
-    return {"body": unscale(model.forward((feet - extra["mean"]) / extra["std"])),
-            "leg": from_per_leg(unscale(leg_model.forward((f - leg_extra["mean"]) / leg_extra["std"]),
-                                        MOTOR_LO[:3], MOTOR_HI[:3]))}
+    for name, path in (("leg", LEG_MODEL_PATH), ("leg_motor", LEG_MOTOR_MODEL_PATH)):
+        if os.path.exists(path):
+            leg_model, leg_extra = nn.load(path)
+            out[name] = from_per_leg(unscale(leg_model.forward((f - leg_extra["mean"]) / leg_extra["std"]),
+                                             MOTOR_LO[:3], MOTOR_HI[:3]))
+    return out
 
 
 def outside_training_box(angles):
@@ -98,13 +102,13 @@ def main():
         walked = dict(zip(runs, pool.map(walk, runs)))
 
     lines = [f"IK networks on real GA gaits: 300 frames x 8 feet each, walked {CYCLES} cycles in Webots", "",
-             f"{'gait':18s} {'network':8s} {'foot err':>9s} {'95%':>6s} {'in box':>7s} {'out box':>8s} "
+             f"{'gait':18s} {'network':10s} {'foot err':>9s} {'95%':>6s} {'in box':>7s} {'out box':>8s} "
              f"{'angle RMSE':>10s}   {'forward':>8s} {'GA':>6s} {'kept':>5s} {'heading':>8s} fell"]
     for r in rows:
         w, ga = walked[f"ik_{r['net']}_{r['gait']}"], walked[r["gait"]]
         r.update(forward=w["forward"], ga_forward=ga["forward"], fell=w.get("fell", np.nan),
                  heading=w["heading_deg"])
-        lines.append(f"{r['gait']:18s} {r['net']:8s} {r['foot_cm']:7.2f}cm {r['foot_cm_p95']:6.2f} "
+        lines.append(f"{r['gait']:18s} {r['net']:10s} {r['foot_cm']:7.2f}cm {r['foot_cm_p95']:6.2f} "
                      f"{r['foot_cm_in']:7.2f} {r['foot_cm_out']:8.2f} {r['angle_rmse']:8.2f}deg   "
                      f"{r['forward']:7.2f}m {r['ga_forward']:5.2f}m {r['forward'] / ga['forward']:5.0%} "
                      f"{r['heading']:+7.1f}d {r['fell']:4.0f}")
@@ -112,9 +116,9 @@ def main():
               "the ranges the training poses were drawn from (part2_nn/ik/ik_data.py).",
               "share of GA angles outside those ranges: "
               + ", ".join(f"{g} {next(r['outside'] for r in rows if r['gait'] == g):.0%}" for g in GAITS)]
-    for net in ("body", "leg"):
+    for net in dict.fromkeys(r["net"] for r in rows):
         sel = [r for r in rows if r["net"] == net]
-        lines.append(f"{net:5s} mean over gaits: foot error {np.mean([r['foot_cm'] for r in sel]):.2f} cm, "
+        lines.append(f"{net:9s} mean over gaits: foot error {np.mean([r['foot_cm'] for r in sel]):.2f} cm, "
                      f"distance kept {np.mean([r['forward'] / r['ga_forward'] for r in sel]):.0%}")
     text = "\n".join(lines)
     with open(os.path.join(OUT, "gait_test.txt"), "w") as fh:

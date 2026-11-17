@@ -104,10 +104,17 @@ def expand_shared(chrom):
     return np.concatenate([pose, amp, s[..., 9:11]], axis=-1)
 
 
+FOOT_GENES = 7     # encoding=foot: foot-path settings, decoded by the per-leg IK network (Part 2)
+
+
 def decode(chrom):
     """chrom (..., 26) per-leg, (..., 11) shared-motion, (..., 12) push-pull or (..., 13) push-pull
-    + steer -> motor angles (..., 300, 24), clipped to the motor limits."""
+    + steer -> motor angles (..., 300, 24), clipped to the motor limits. A single (7,) foot-path
+    chromosome goes to part2_nn/ik/foot_gait.decode (imported only then: it loads the network)."""
     c = np.asarray(chrom, dtype=float)
+    if c.shape == (FOOT_GENES,):
+        from part2_nn.ik import foot_gait
+        return foot_gait.decode(c)
     offset, steer = 0.0, 1.0
     if c.shape[-1] == STEER_GENES:
         steer = 1.0 + c[..., 12:13] * _STEER

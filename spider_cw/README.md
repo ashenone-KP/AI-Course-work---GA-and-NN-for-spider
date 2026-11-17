@@ -9,7 +9,8 @@ Version 1 scored gaits on a no-physics model of the lecturer's MATLAB spider. Th
    - The robot's controller is `ga_trainer`, with `selfCollision TRUE` and `controllerArgs ["pop=40" "gens=100" "seed=0" "encoding=pushpi" "name=live"]`. These settings reproduce `pi0`, because the physics is repeatable.
    - The on-screen label shows the generation and "evaluating i/40". After each generation the best gait is replayed in real time.
    - Everything is saved to `outputs/<name>/` after every generation, so stopping early loses nothing.
-   - The other options (`encoding=shared|pushpi|pushpull|legs`, `pitch=0` to drop the tilt rule, `start=<run>` to refine a saved gait, `slip=<weight>`, `period`, `cycles`, `show=0` for headless) are listed at the top of `controllers/ga_trainer/ga_trainer.py`.
+   - The other options (`encoding=shared|pushpi|pushpull|steer|legs|foot`, `pitch=0` to drop the tilt rule, `tilt=<rad>` for how much tilt is free, `start=<run>` to refine a saved gait, `slip=<weight>`, `period`, `cycles`, `show=0` for headless) are listed at the top of `controllers/ga_trainer/ga_trainer.py`.
+   - **Best gait so far:** `encoding=foot`: the GA tunes spider-like foot paths and the Part 2 per-leg network turns them into joint angles. `["encoding=foot" "pop=40" "gens=50" "cycles=4" "mrate=0.2" "tilt=0.14" "seed=1" "name=foot_t14_s1"]` reproduces it.
 2. **Check each leg:** set `controllerArgs ["measure=pi0" "cycles=4"]`. It walks that run's best gait and prints, per leg, the foot lift, time on the floor, slide distance and whether the leg steps.
 3. **Plots:**
    ```bash
@@ -86,7 +87,12 @@ Every run is kept in `outputs/`.
 - **Tuning:** a line search on the steer gene alone (`tune=<run>`) against the steady turn rate made them straight. Turning radius went from 17–180 m to 66 m–6 km.
 - **Heading feedback:** `gait_player` with `"straight"` keeps any gait within 5 cm of its line, except the best operator run, which curves harder than the steer gene can correct.
 
-Known weaknesses (`docs/design.txt` §8):
+**Foot-path gaits: GA + IK network** (`docs/design.txt` §8). `encoding=foot` evolves 7 foot-path settings (stride, lift, time on the ground, ground height, reach, spread, back-to-front ripple), and Part 2's per-leg IK network turns them into joint angles.
+- `foot_t14_s1` walks **4.10 m in 4 cycles** with 3.3 m of foot sliding and a level body, against pi0's 2.05 m and 7.75 m.
+- Over 20 cycles it walks 20.3 m, heading within 2°.
+- Two seeds found nearly the same genes, including a spider-like back-to-front ripple.
+
+Known weaknesses (`docs/design.txt` §9):
 - Results vary a lot by seed.
 - `pi0` slides a lot, and `shared1` leans.
 - Open loop, most gaits curve over long walks.
@@ -114,4 +120,8 @@ python -m part2_nn.compare_pytorch  # the same network in PyTorch (needs torch)
   3. The same 8 speeds made straight (final): 1.86°.
 - **Against PyTorch:** gradients agree to 6×10⁻¹⁷, and both reach the same final loss (1.634255×10⁻⁴).
 
-Option E (inverse kinematics) is a teammate's part; their brief is `docs/nn_teammate_prompt.md`.
+**Option E (inverse kinematics)**, `part2_nn/ik/`, is the teammate's work (their brief: `docs/nn_teammate_prompt.md`). Full comparison: `docs/ik_comparison.md`.
+- **Two networks** map foot positions to joint angles: whole-body (24 → 24) and per-leg (3 → 3, shared by all legs).
+- **The per-leg network wins:** 0.50 cm against 3.67 cm on random test poses. Rebuilding real GA gaits, it misses by 2.8 cm against 6.9 cm, and its rebuilt gaits keep 101% of the GA distance against 89%.
+- **A third model** is trained on the full motor range (`train --leg-motor`). It fixes poses outside the original range but is less precise inside it.
+- **Spider gaits:** `part2_nn/ik/foot_gait.py` writes spider-like foot paths and the per-leg network turns them into a walk. With the GA tuning those paths (above), this is the best gait in the project.

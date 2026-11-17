@@ -1,0 +1,30 @@
+Spider foot-path gaits through the per-leg network (ik_leg_model_motor.npz), 4 cycles in Webots
+ideal = stride / duty x 4 cycles (no slipping); slide = all 8 feet's sliding on the floor
+
+run                               IK err  coll  ideal  forward  slide  heading  pitch fell
+spider_motor_s0.20_h0.06_d0.50    1.33cm  0.00  1.60m    0.55m  9.60m    -0.2d  0.016    0
+spider_motor_s0.20_h0.06_d0.65    1.31cm  0.00  1.23m    0.37m  8.27m    +0.2d  0.019    0
+spider_motor_s0.20_h0.12_d0.50    1.17cm  0.00  1.60m    0.91m  6.05m    +0.7d  0.011    0
+spider_motor_s0.20_h0.12_d0.65    1.20cm  0.00  1.23m    0.70m  5.72m    +0.6d  0.010    0
+spider_motor_s0.20_h0.18_d0.50    1.10cm  0.00  1.60m    1.09m  5.18m    -1.6d  0.007    0
+spider_motor_s0.20_h0.18_d0.65    1.16cm  0.00  1.23m    0.77m  5.17m    -0.2d  0.009    0
+spider_motor_s0.20_h0.24_d0.50    1.09cm  0.00  1.60m    1.24m  4.47m    +0.4d  0.015    0
+spider_motor_s0.20_h0.24_d0.65    1.14cm  0.00  1.23m    0.92m  4.79m    +0.1d  0.014    0
+spider_motor_s0.30_h0.06_d0.50    1.27cm  0.00  2.40m    1.02m 13.19m    +0.8d  0.032    0
+spider_motor_s0.30_h0.06_d0.65    1.26cm  0.00  1.85m    0.85m 12.04m    -0.9d  0.046    0
+spider_motor_s0.30_h0.12_d0.50    1.15cm  0.00  2.40m    1.51m  7.55m    +0.9d  0.019    0
+spider_motor_s0.30_h0.12_d0.65    1.18cm  0.00  1.85m    1.22m  7.17m    +0.5d  0.032    0
+spider_motor_s0.30_h0.18_d0.50    1.10cm  0.00  2.40m    1.76m  6.42m    -0.1d  0.021    0
+spider_motor_s0.30_h0.18_d0.65    1.14cm  0.00  1.85m    1.38m  6.42m    +0.3d  0.034    0
+spider_motor_s0.30_h0.24_d0.50    1.08cm  0.00  2.40m    1.85m  5.38m    -0.2d  0.022    0
+spider_motor_s0.30_h0.24_d0.65    1.13cm  0.00  1.85m    1.53m  5.63m    -0.1d  0.034    0
+spider_motor_s0.40_h0.06_d0.50    1.23cm  0.12  3.20m    0.43m 13.60m   +11.7d  0.027    0
+spider_motor_s0.40_h0.06_d0.65    1.24cm  0.00  2.46m    1.17m 15.19m    +5.3d  0.035    0
+spider_motor_s0.40_h0.12_d0.50    1.16cm  0.12  3.20m    1.55m 10.87m   +10.1d  0.020    0
+spider_motor_s0.40_h0.12_d0.65    1.18cm  0.00  2.46m    1.63m  9.37m    +2.2d  0.034    0
+spider_motor_s0.40_h0.18_d0.50    1.10cm  0.12  3.20m    2.00m  8.54m    +7.8d  0.018    0
+spider_motor_s0.40_h0.18_d0.65    1.15cm  0.00  2.46m    1.89m  8.20m    +0.6d  0.036    0
+spider_motor_s0.40_h0.24_d0.50    1.08cm  0.15  3.20m    2.08m  6.54m    +5.5d  0.023    0
+spider_motor_s0.40_h0.24_d0.65    1.13cm  0.00  2.46m    1.95m  6.79m    -0.2d  0.033    0
+
+pi0 (GA, for comparison)                                 2.05m  7.75m    -0.7d  0.059    0

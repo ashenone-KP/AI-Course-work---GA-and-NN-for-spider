@@ -269,13 +269,59 @@ so the heading is the direction of travel. 20 cycles, sideways offset at the end
 Every gait but pop80_s2 holds its line within 5 cm without losing speed. pop80_s2 curves more
 than the steer range (+-0.3) can cancel.
 
-8. Limitations
+8. Foot-path encoding: the GA drives the IK network (encoding=foot, tilt=)
+-------------------------------------------------------------------------
+Every encoding above moves each joint along a sine, so the feet go wherever the joints take them,
+and they slide (limitation below). Part 2's per-leg inverse-kinematics network (option E,
+docs/ik_comparison.md) turns a foot position into its leg's 3 angles, so a gait can instead be
+written the way a spider walks: each foot planted and still on the ground while the body passes
+over it, then lifted and swung forward (part2_nn/ik/foot_gait.py). encoding=foot searches the 7
+settings of those foot paths instead of joint sines:
+    stride   0.10-0.60 m   how far a foot moves back during stance
+    lift     0.04-0.30 m   swing height
+    duty     0.45-0.80     share of the cycle a foot is on the ground
+    height  -0.68--0.50 m  ground level below the body centre (lower is out of reach)
+    reach    0.85-1.10     lateral foot distance, x pi0's average
+    spread   0.85-1.15     front/hind foot distance along the body, x pi0's average
+    wave     0.00-0.15     back-to-front ripple: each pair steps this share of a cycle after the
+                           pair behind it (0 = two rigid tetrapods)
+gait.decode sends a 7-gene chromosome to the network, so the trainer, plots, tune and replay work
+unchanged. The swing leaves and lands at the stance's backward speed, so the foot is still over
+the ground at lift-off and touch-down.
+
+Tilt (option tilt=, rad): the tilt rule (section 3) penalises mean body pitch beyond `tilt`.
+The default 0.07 (4 deg) keeps the old runs reproducible; these runs use 0.14 (8 deg), a slight
+lean allowed.
+
+Runs foot_t14_s0..2: pop 40, 50 generations, 4 cycles per evaluation (start transients matter
+less than over 2), mutation rate 0.2 (section 4: best for small encodings), tilt 0.14.
+    run           forward (4 cycles)  slide   pitch   20 cycles: forward, heading, sideways
+    foot_t14_s1   4.10 m              3.30 m  0.015   20.30 m, +2.0 deg, +0.78 m
+    foot_t14_s0   4.04 m              3.12 m  0.014   20.01 m, +3.0 deg, +1.01 m
+    foot_t14_s2   3.80 m              4.30 m  0.020
+    pi0           2.05 m              7.75 m  0.059
+    best hand-set foot path (0.40 / 0.24 / 0.50)  2.53 m  5.91 m  0.022   14.61 m, -0.5 deg
+* Twice pi0's distance with less than half its sliding, level (pitch 0.015, under even the old
+  4 deg rule, so the relaxed tilt was not needed), no leg collisions, no fall. Over 20 cycles it
+  beats the fastest joint-sine gait (pop80_s2, 16.0 m but curving 64 deg) and holds its heading
+  within 2-3 deg.
+* Seeds 0 and 1 found nearly the same genes independently (stride 0.60, lift 0.29-0.30, duty
+  0.58, height -0.51/-0.52, reach 0.87, spread 1.13/1.15, wave 0.13): not a lucky seed.
+* The GA chose a ripple (wave 0.13): the gait diagram (outputs/foot_t14_s1/foot_heights.png)
+  shows each leg stepping just after the one behind it, as real spiders do, not two rigid groups.
+* stride, lift, height and spread ended at or near their upper bounds, reach near its lower one:
+  the best gait probably lies beyond these bounds; a wider run is the obvious next step.
+* The hind feet dip ~2.5 cm below ground level at the end of stance (foot_heights.png): targets
+  far back at that height are near the edge of reach.
+
+9. Limitations
 --------------
 * Results vary a lot by seed: every configuration has a seed that only steps in place
   (0.0-0.3 m). 3 seeds per configuration is a small sample; the means above are rough.
 * pi0 slides a lot (7.7 m for 2.05 m forward; refined ref10_2: 4.9 m for 1.94 m); shared1
   leans forward 12 deg.
-* Feet slide in every gait: one sine per joint cannot draw a flat stance stroke.
+* Feet slide in every joint-sine gait: one sine per joint cannot draw a flat stance stroke
+  (the foot-path encoding, section 8, roughly halves it, but planted feet still slip under load).
 * Each gait is scored over 2 cycles from a standing start; some looked fine over 2 cycles and
   sank or slowed over 4 (shared2), and most curve over 20 (section 7). Longer evaluations would
   catch that, at extra cost. Straight walking now comes from a separate steer tuning step and

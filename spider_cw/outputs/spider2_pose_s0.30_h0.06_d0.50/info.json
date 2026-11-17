@@ -1,0 +1,11 @@
+{
+ "stride": 0.3,
+ "lift": 0.06,
+ "duty": 0.5,
+ "wave": 0.0,
+ "model": "ik_leg_model.npz",
+ "ik_foot_cm_mean": 0.3111586130803318,
+ "ik_foot_cm_max": 0.892777122988443,
+ "self_collision": 0.0,
+ "ideal_m_per_cycle": 0.6
+}

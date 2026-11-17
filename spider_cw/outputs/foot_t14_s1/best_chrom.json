@@ -1,0 +1,52 @@
+{
+ "fitness": 3.498340343252605,
+ "generation": 48,
+ "components": {
+  "forward": 4.095708552755311,
+  "drift": 0.1834548950678918,
+  "turn": 0.0329327373595536,
+  "min_height": 0.3207497679896494,
+  "low_time": 0.0,
+  "fell": 0.0,
+  "lift": 1.0,
+  "idle_legs": 0.0,
+  "slide": 3.297247977629947,
+  "pitch": 0.014816327575676608,
+  "nose_down": -0.014215739640865319,
+  "skipped": 0.0,
+  "collision": 0.0
+ },
+ "options": {
+  "pop": 40,
+  "gens": 50,
+  "seed": 1,
+  "period": 2.0,
+  "cycles": 4,
+  "show": 0,
+  "name": "foot_t14_s1",
+  "selftest": 0,
+  "measure": null,
+  "encoding": "foot",
+  "pitch": 1,
+  "slip": 0.3,
+  "start": null,
+  "target": null,
+  "selection": "tournament",
+  "crossover": "blend",
+  "adaptive": 1,
+  "mrate": 0.2,
+  "turnw": 0.5,
+  "tune": null,
+  "replay": null,
+  "tilt": 0.14
+ },
+ "chromosome": [
+  0.5988579096030743,
+  0.2911496872195228,
+  0.5745115122280221,
+  -0.5209168824282008,
+  0.8730586914846692,
+  1.1476190843824698,
+  0.13063760625468854
+ ]
+}

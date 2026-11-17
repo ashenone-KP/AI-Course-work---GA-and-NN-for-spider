@@ -24,12 +24,16 @@
 - The world is set to train live: `ga_trainer`, with `encoding=pushpi`, seed 0, population 40 and 100 generations, saving to `outputs/live`. These settings reproduce pi0.
 
 ## Next steps
-1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §8).
+1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §9).
+   - **Best gait now:** `outputs/foot_t14_s1`, made with `encoding=foot`. The GA tunes the foot paths and the per-leg IK network turns them into angles. It walks 4.10 m in 4 cycles (pi0: 2.05 m) with less than half the sliding. See design.txt §8.
+   - Most of its genes ended at their bounds, so a run with wider bounds is the obvious next step.
 2. ~~Operator experiments in physics~~ Done: `outputs/operators/`, `docs/design.txt` §4. They suggest a mutation rate of about 0.2 for the 12-gene encoding.
 3. **Optional:** draw the footfall diagram from measured contacts (the trainer's `measure=` already prints them) instead of commanded angles.
 4. **Part 2 (in progress):** options A + E, sharing the from-scratch numpy core `part2_nn/nn.py`. Its self-check passes: gradient check, SGD and Adam convergence, save/load.
    - **A (main):** `[sin φ, cos φ, speed]` → 24 angles. The training gaits come from the trainer's `target=` mode, refined from `ref10_2` at 6 target distances (`outputs/speed0*`).
-   - **E:** inverse kinematics, 8 foot positions → 24 angles. It's handed to a teammate with the brief in `docs/nn_teammate_prompt.md`.
+   - **E:** inverse kinematics, 8 foot positions → 24 angles. The teammate built it (`part2_nn/ik/`, from their repo's `nn` branch), and we trained it fully and compared it in `docs/ik_comparison.md`.
+     - The per-leg network wins.
+     - `foot_gait.py` turns spider foot paths into gaits through it, and Part 1's `encoding=foot` evolves those paths.
    - **Option A status:** done. Its write-up is `docs/nn_design.txt`, the model `part2_nn/models/speed_model.npz`, and the figures are in `outputs/nn_speed/`.
      - It's trained on 8 GA speeds made straight (`straight0xx_tuned`; see design.txt §7). Network gaits walk within 1–2% of the requested speed in Webots (6–7% at 0.117 and 0.300).
      - Joint error on the held-out speed is 1.86°, against 1.90° for a simple blend of neighbouring gaits.

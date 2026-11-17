@@ -1,0 +1,3 @@
+per-leg 3 -> 3 network, motor range: 64x64 tanh adam lr 0.001 batch 512, best epoch 164 of 205, 706 s
+  test (5000 motor-range poses x 8 feet): foot error mean 1.22 cm, 95% 3.10 cm, max 22.0 cm
+  angle RMSE 2.93 deg (hip / thigh / knee 4.93 / 0.97 / 0.75)
