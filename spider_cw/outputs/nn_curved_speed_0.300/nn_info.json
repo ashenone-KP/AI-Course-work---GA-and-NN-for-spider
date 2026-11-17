@@ -1,0 +1,5 @@
+{
+ "source": "part2_nn speed network",
+ "model": "part2_nn\\models\\speed_model.npz",
+ "requested_speed_m_per_cycle": 0.3
+}

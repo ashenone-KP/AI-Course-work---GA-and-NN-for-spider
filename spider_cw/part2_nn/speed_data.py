@@ -37,10 +37,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # speed055/065/070 were added to fill the gap 0.24-0.45 m/cycle around the test speed (the first
 # network's error was largest there). speed050 (target 0.50) is left out: the GA could not slow it
 # down from ref10_2 and it measured 0.449, a second, different gait at speed075's speed.
-RUNS = {"speed015": 0.469 / 4, "speed030": 0.652 / 4, "speed045": 0.959 / 4, "speed055": 1.255 / 4,
-        "speed060": 1.427 / 4, "speed065": 1.523 / 4, "speed070": 1.595 / 4, "speed075": 1.803 / 4,
-        "speed090": 1.939 / 4}
-HELD_OUT = "speed060"
+# That family (speed015-090) curved left, 17-180 m turning radius over 20 cycles, and so did the
+# network trained on it (kept as models/speed_model_curved.npz, outputs/nn_speed_curved). Each gait
+# was then re-evolved with a steer gene (encoding=steer, 4-cycle evaluation, turnw=5: straight0xx)
+# and its steer gene tuned for zero steady turn (ga_trainer tune=, straight0xx_tuned): 66 m to
+# >1 km radius. These are the tuned gaits; speeds re-measured over 4 cycles.
+RUNS = {"straight015_tuned": 0.485 / 4, "straight030_tuned": 0.656 / 4, "straight045_tuned": 0.970 / 4,
+        "straight055_tuned": 1.248 / 4, "straight060_tuned": 1.465 / 4, "straight065_tuned": 1.518 / 4,
+        "straight070_tuned": 1.621 / 4, "straight075_tuned": 1.833 / 4, "straight090_tuned": 1.909 / 4}
+HELD_OUT = "straight060_tuned"
 MID = (MOTOR_HI + MOTOR_LO) / 2
 HALF = 1.1 * (MOTOR_HI - MOTOR_LO) / 2
 
@@ -99,11 +104,11 @@ if __name__ == "__main__":
     assert d["X_train"].shape[1] == 3 and d["Y_train"].shape[1] == 24
     assert len(d["X_train"]) + len(d["X_val"]) == (len(RUNS) - 1) * FRAMES and d["X_test"].shape == (FRAMES, 3)
     assert np.abs(d["Y_train"]).max() <= 1 / 1.1 + 1e-9                     # targets inside tanh's range
-    f = load_frames("speed045")
+    f = load_frames("straight045_tuned")
     assert np.allclose(unscale(scale(f)), f)                                  # scaling round trip
     assert not np.any(np.isclose(d["X_train"][:, 2], d["X_test"][0, 2]))      # held-out speed never in training
-    f2 = build(val_run="speed045")
-    assert len(f2["X_train"]) == (len(RUNS) - 2) * FRAMES and np.isclose(f2["X_val"][0, 2], (RUNS["speed045"] - d["speed_mean"]) / d["speed_std"])
+    f2 = build(val_run="straight045_tuned")
+    assert len(f2["X_train"]) == (len(RUNS) - 2) * FRAMES and np.isclose(f2["X_val"][0, 2], (RUNS["straight045_tuned"] - d["speed_mean"]) / d["speed_std"])
     print(f"speed_data self-check passed: {len(d['X_train'])} train, {len(d['X_val'])} val, "
           f"{len(d['X_test'])} test frames; train speeds {[round(RUNS[r], 3) for r in d['train_runs']]}, "
           f"held out {d['held_out']} = {RUNS[d['held_out']]:.3f} m/cycle")

@@ -1,0 +1,126 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
+EXTERNPROTO "../protos/SpiderOctopod.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0 1 0 0.6
+  position -130 0 95
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  translation -1.28466 -0.505353 0
+  floorSize 400 400
+  floorAppearance Parquetry {
+    type "light strip"
+  }
+}
+Solid {
+  translation 50 50 0.5
+  children [
+    Shape {
+      geometry Box {
+        size 1 1 1
+      }
+    }
+  ]
+}
+SpiderOctopod {
+  translation -0.404 90.0 0.1331
+  name "run1"
+  controller "gait_player"
+  controllerArgs ["run1" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 75.0 0.1331
+  name "legs1"
+  controller "gait_player"
+  controllerArgs ["legs1" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 60.0 0.1331
+  name "shared1"
+  controller "gait_player"
+  controllerArgs ["shared1" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 45.0 0.1331
+  name "level0"
+  controller "gait_player"
+  controllerArgs ["level0" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 30.0 0.1331
+  name "tilt1"
+  controller "gait_player"
+  controllerArgs ["tilt1" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 15.0 0.1331
+  name "pp2"
+  controller "gait_player"
+  controllerArgs ["pp2" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 0.0 0.1331
+  name "ppfree0"
+  controller "gait_player"
+  controllerArgs ["ppfree0" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 -15.0 0.1331
+  name "pi0"
+  controller "gait_player"
+  controllerArgs ["pi0" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 -30.0 0.1331
+  name "pifree0"
+  controller "gait_player"
+  controllerArgs ["pifree0" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 -45.0 0.1331
+  name "ref10_2"
+  controller "gait_player"
+  controllerArgs ["ref10_2" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 -60.0 0.1331
+  name "operators/pop80_s2"
+  controller "gait_player"
+  controllerArgs ["operators/pop80_s2" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 -75.0 0.1331
+  name "nn_speed_0.117"
+  controller "gait_player"
+  controllerArgs ["nn_speed_0.117" "2.0" "straight"]
+  selfCollision TRUE
+}
+SpiderOctopod {
+  translation -0.404 -90.0 0.1331
+  name "nn_speed_0.451"
+  controller "gait_player"
+  controllerArgs ["nn_speed_0.451" "2.0" "straight"]
+  selfCollision TRUE
+}

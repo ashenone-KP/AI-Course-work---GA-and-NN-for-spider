@@ -45,7 +45,7 @@ LABEL = {"learning rate (Adam)": lambda c: f"lr {c['lr']:g}",
          "architecture": lambda c: "x".join(map(str, c["sizes"])),
          "batch size": lambda c: f"batch {c['batch']}",
          "weight decay (L2)": lambda c: f"l2 {c['l2']:g}"}
-FOLDS = ("speed030", "speed055", "speed070")          # inner speeds spread over the range
+FOLDS = ("straight030_tuned", "straight055_tuned", "straight070_tuned")          # inner speeds spread over the range
 OUT = os.path.join(ROOT, "outputs", "nn_speed")
 MODEL_PATH = os.path.join(ROOT, "part2_nn", "models", "speed_model.npz")
 

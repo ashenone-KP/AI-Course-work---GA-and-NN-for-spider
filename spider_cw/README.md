@@ -16,6 +16,9 @@ Version 1 scored gaits on a no-physics model of the lecturer's MATLAB spider. Th
    python -m part1_ga.plots outputs/pi0
    ```
 4. **Replay:** set the controller to `gait_player` with `controllerArgs ["pi0"]` (or `["shared1"]`). It prints the distance walked after every cycle.
+   - Add `"straight"` (e.g. `["nn_speed_0.300" "2.0" "straight"]`) to turn on heading feedback, which keeps the robot on the line it starts on.
+   - Open loop, every gait slowly curves; the network's gaits curve up to 20° in 40 s. The feedback works through the steer gene's mechanism (one side's hips swing a little more).
+   - After 20 cycles the network gaits end within 0.05 m of the line, against up to 1.05 m without feedback.
 5. **Headless:**
    ```bash
    webots.exe --batch --mode=fast --stdout --stderr --minimize --no-rendering <world>

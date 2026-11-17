@@ -13,3 +13,6 @@ Spider_world_demo/worlds/.*.jpg
 # Self-test output
 spider_cw/outputs/_plots_selftest/
 archive/spider_cw_v1/outputs/_plots_selftest/
+
+# Recorded videos (ga_trainer replay=): too big for GitHub
+*.mp4

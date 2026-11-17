@@ -70,6 +70,15 @@ PUSHPULL_LOW = np.append(SHARED_LOW, 0.0)
 PUSHPULL_HIGH = np.append(SHARED_HIGH, 2 * np.pi)
 PUSHPULL_WRAP = np.append(SHARED_WRAP, True)
 
+# Steer encoding, 13 genes = push-pull + p[12]: left hips swing (1 + steer) x the hip amplitude,
+# right hips (1 - steer), so one side takes longer strides. Mirroring makes the gait left/right
+# symmetric by design, yet every push-pull gait curved left in physics (ref10_2: 21 m turning radius
+# over 20 cycles, and the speed family + the network trained on it inherited that); without this
+# gene the GA had no way to correct it.
+STEER_GENES = 13
+STEER_MAX = 0.3
+_STEER = np.where(np.repeat([0, 0, 0, 0, 1, 1, 1, 1], 3) == 1, -1.0, 1.0) * (np.tile([0, 1, 2], 8) == 0)
+
 _T = 2 * np.pi * np.arange(FRAMES) / FRAMES
 _SOURCE = np.concatenate([np.arange(12), np.arange(12).reshape(4, 3)[::-1].ravel()])  # R4..R1 <- L4..L1
 _RIGHT = np.repeat([0, 0, 0, 0, 1, 1, 1, 1], 3)
@@ -96,17 +105,20 @@ def expand_shared(chrom):
 
 
 def decode(chrom):
-    """chrom (..., 26) per-leg, (..., 11) shared-motion or (..., 12) push-pull -> motor angles
-    (..., 300, 24), clipped to the motor limits."""
+    """chrom (..., 26) per-leg, (..., 11) shared-motion, (..., 12) push-pull or (..., 13) push-pull
+    + steer -> motor angles (..., 300, 24), clipped to the motor limits."""
     c = np.asarray(chrom, dtype=float)
-    offset = 0.0
+    offset, steer = 0.0, 1.0
+    if c.shape[-1] == STEER_GENES:
+        steer = 1.0 + c[..., 12:13] * _STEER
+        c = c[..., :PUSHPULL_GENES]
     if c.shape[-1] == PUSHPULL_GENES:
         offset = c[..., 11:12] * _HIND_KNEE
         c = c[..., :SHARED_GENES]
     if c.shape[-1] == SHARED_GENES:
         c = expand_shared(c)
     pose = _MIRROR * c[..., _SOURCE]
-    amp = _MIRROR * c[..., N_POSE + _SOURCE]
+    amp = _MIRROR * c[..., N_POSE + _SOURCE] * steer
     angles = pose[..., None, :] + amp[..., None, :] * np.sin(_T[:, None] + (phases(c) + offset)[..., None, :])
     return np.clip(angles, MOTOR_LO, MOTOR_HI)
 
@@ -150,4 +162,11 @@ if __name__ == "__main__":
     assert np.allclose(fp[:, knee[~hind]], fs[:, knee[~hind]])                 # front knees unchanged
     assert np.allclose(fp[:, knee[hind]] + fs[:, knee[hind]], 2 * rest[knee[hind]])  # hind knee swing reversed
     assert np.allclose(decode(np.append(mid, 0.0)), fs)                          # offset 0 = shared motion
+    pp = np.append(mid, np.pi)
+    assert np.allclose(decode(np.append(pp, 0.0)), fp)                           # steer 0 = push-pull
+    st = decode(np.append(pp, 0.2))
+    swing = lambda f, leg: np.ptp(f[:, MOTOR_NAMES.index(f"{leg}_hip_joint")])
+    assert np.isclose(swing(st, "L2"), 1.2 * swing(fp, "L2")) and np.isclose(swing(st, "R2"), 0.8 * swing(fp, "R2"))
+    assert np.allclose(np.delete(st, [MOTOR_NAMES.index(f"{l}_hip_joint") for l in LEGS], axis=1),
+                       np.delete(fp, [MOTOR_NAMES.index(f"{l}_hip_joint") for l in LEGS], axis=1))  # only hips change
     print("gait self-check passed")

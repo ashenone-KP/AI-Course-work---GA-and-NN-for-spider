@@ -1,6 +1,6 @@
-config {'sizes': [64, 64], 'hidden': 'tanh', 'opt': 'adam', 'lr': 0.003, 'batch': 64, 'l2': 0.0, 'epochs': 3000, 'patience': 300, 'seed': 0}, 310 epochs, float64, same initial weights and batches
-gradient agreement on one batch: max |numpy - torch autograd| = 4.16e-17
-final training loss: numpy 5.560229e-05  torch 5.560229e-05
-largest weight difference after training: 1.05e-01
-held-out test speed RMSE: numpy 1.145 deg  torch 1.061 deg
-training time: numpy 7.1 s  torch 14.2 s (1 thread)
+config {'sizes': [64, 64], 'hidden': 'tanh', 'opt': 'adam', 'lr': 0.03, 'batch': 64, 'l2': 0.0, 'epochs': 3000, 'patience': 300, 'seed': 0}, 107 epochs, float64, same initial weights and batches
+gradient agreement on one batch: max |numpy - torch autograd| = 5.55e-17
+final training loss: numpy 1.634255e-04  torch 1.634255e-04
+largest weight difference after training: 2.11e-02
+held-out test speed RMSE: numpy 1.861 deg  torch 1.731 deg
+training time: numpy 2.3 s  torch 7.0 s (1 thread)
