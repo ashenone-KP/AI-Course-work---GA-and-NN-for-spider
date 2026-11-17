@@ -1,0 +1,13 @@
+numpy (from scratch) vs PyTorch 2.15.0+cpu, 128x128 tanh adam lr 0.001 batch 64, 2 epochs, float64
+same starting weights, same batches, both compute train+val loss every epoch
+
+gradient on one batch from identical weights: largest relative difference 6.8e-16
+
+                        numpy (ours)       PyTorch
+final train loss            0.029687      0.029687
+final val loss              0.030178      0.030178
+test foot error mean         20.26cm       20.26cm
+test foot error 95%          45.01cm       45.01cm
+training time                   3.6s         73.8s
+time per epoch                 1.81s        36.89s
+val loss after epoch 1: numpy 0.041051, PyTorch 0.041051

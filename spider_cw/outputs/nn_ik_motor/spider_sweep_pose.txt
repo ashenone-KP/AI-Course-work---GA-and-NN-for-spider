@@ -1,0 +1,30 @@
+Spider foot-path gaits through the per-leg network (ik_leg_model.npz), 4 cycles in Webots
+ideal = stride / duty x 4 cycles (no slipping); slide = all 8 feet's sliding on the floor
+
+run                               IK err  coll  ideal  forward  slide  heading  pitch fell
+spider_pose_s0.20_h0.06_d0.50     0.32cm  0.00  1.60m    0.56m  9.23m    +0.4d  0.017    0
+spider_pose_s0.20_h0.06_d0.65     0.29cm  0.00  1.23m    0.38m  8.16m    +0.4d  0.015    0
+spider_pose_s0.20_h0.12_d0.50     0.28cm  0.00  1.60m    0.91m  5.93m    +0.7d  0.012    0
+spider_pose_s0.20_h0.12_d0.65     0.26cm  0.00  1.23m    0.72m  5.69m    +0.6d  0.011    0
+spider_pose_s0.20_h0.18_d0.50     0.27cm  0.00  1.60m    1.16m  4.98m    -0.9d  0.008    0
+spider_pose_s0.20_h0.18_d0.65     0.26cm  0.00  1.23m    0.83m  5.22m    -0.4d  0.009    0
+spider_pose_s0.20_h0.24_d0.50     0.29cm  0.00  1.60m    1.24m  4.19m    +0.5d  0.015    0
+spider_pose_s0.20_h0.24_d0.65     0.27cm  0.00  1.23m    0.92m  4.67m    +0.5d  0.012    0
+spider_pose_s0.30_h0.06_d0.50     0.32cm  0.00  2.40m    1.18m 13.60m    +1.7d  0.033    0
+spider_pose_s0.30_h0.06_d0.65     0.29cm  0.00  1.85m    0.90m 11.78m    -0.8d  0.040    0
+spider_pose_s0.30_h0.12_d0.50     0.28cm  0.00  2.40m    1.51m  7.50m    +1.4d  0.018    0
+spider_pose_s0.30_h0.12_d0.65     0.26cm  0.00  1.85m    1.23m  6.77m    +0.8d  0.028    0
+spider_pose_s0.30_h0.18_d0.50     0.26cm  0.00  2.40m    1.77m  6.13m    +0.3d  0.019    0
+spider_pose_s0.30_h0.18_d0.65     0.25cm  0.00  1.85m    1.43m  6.26m    -0.0d  0.035    0
+spider_pose_s0.30_h0.24_d0.50     0.28cm  0.00  2.40m    1.85m  5.39m    -0.1d  0.023    0
+spider_pose_s0.30_h0.24_d0.65     0.26cm  0.00  1.85m    1.53m  5.30m    -0.1d  0.028    0
+spider_pose_s0.40_h0.06_d0.50     0.29cm  0.11  3.20m    1.82m 17.20m    -0.2d  0.022    0
+spider_pose_s0.40_h0.06_d0.65     0.27cm  0.00  2.46m    1.30m 14.68m    +6.2d  0.028    0
+spider_pose_s0.40_h0.12_d0.50     0.25cm  0.11  3.20m    2.03m  9.51m    -1.9d  0.017    0
+spider_pose_s0.40_h0.12_d0.65     0.24cm  0.00  2.46m    1.68m  9.14m    +2.9d  0.025    0
+spider_pose_s0.40_h0.18_d0.50     0.24cm  0.11  3.20m    2.32m  7.48m    +0.3d  0.021    0
+spider_pose_s0.40_h0.18_d0.65     0.23cm  0.00  2.46m    1.79m  7.24m    +2.5d  0.025    0
+spider_pose_s0.40_h0.24_d0.50     0.26cm  0.14  3.20m    2.46m  6.21m    +0.0d  0.025    0
+spider_pose_s0.40_h0.24_d0.65     0.25cm  0.00  2.46m    1.97m  6.57m    +0.7d  0.028    0
+
+pi0 (GA, for comparison)                                 2.05m  7.75m    -0.7d  0.059    0

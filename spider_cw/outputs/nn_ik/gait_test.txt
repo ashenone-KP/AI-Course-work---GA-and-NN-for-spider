@@ -1,0 +1,16 @@
+IK networks on real GA gaits: 300 frames x 8 feet each, walked 4 cycles in Webots
+
+gait               network   foot err    95%  in box  out box angle RMSE    forward     GA  kept  heading fell
+pi0                body        7.81cm  16.12    4.94    11.15     5.81deg      1.89m  2.05m   92%    +0.2d    0
+pi0                leg         2.56cm   6.14    0.83     4.58     2.39deg      1.87m  2.05m   91%    +2.6d    0
+ref10_2            body        7.36cm  15.35    4.84    10.67     5.32deg      1.96m  1.94m  101%    -1.2d    0
+ref10_2            leg         2.57cm   8.18    0.84     4.85     2.59deg      1.99m  1.94m  102%    +4.6d    0
+shared1            body        5.37cm  25.34    2.93    22.57     3.56deg      2.29m  2.48m   92%    +1.6d    0
+shared1            leg         3.52cm  34.66    0.33    26.01     4.06deg      2.55m  2.48m  103%    -0.4d    0
+straight045_tuned  body        7.24cm  15.89    4.79    10.64     4.95deg      0.69m  0.97m   71%    +4.1d    0
+straight045_tuned  leg         2.50cm   8.55    0.87     4.76     2.43deg      1.04m  0.97m  108%    +0.1d    0
+
+in box / out box: mean foot error on legs whose angles all lie inside / partly outside the ranges the training poses were drawn from (part2_nn/ik/ik_data.py).
+share of GA angles outside those ranges: pi0 17%, ref10_2 17%, shared1 4%, straight045_tuned 16%
+body  mean over gaits: foot error 6.94 cm, distance kept 89%
+leg   mean over gaits: foot error 2.79 cm, distance kept 101%
