@@ -24,19 +24,24 @@
 - The world is set to train live: `ga_trainer`, with `encoding=pushpi`, seed 0, population 40 and 100 generations, saving to `outputs/live`. These settings reproduce pi0.
 
 ## Next steps
-1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §7).
+1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §8).
 2. ~~Operator experiments in physics~~ Done: `outputs/operators/`, `docs/design.txt` §4. They suggest a mutation rate of about 0.2 for the 12-gene encoding.
 3. **Optional:** draw the footfall diagram from measured contacts (the trainer's `measure=` already prints them) instead of commanded angles.
 4. **Part 2 (in progress):** options A + E, sharing the from-scratch numpy core `part2_nn/nn.py`. Its self-check passes: gradient check, SGD and Adam convergence, save/load.
    - **A (main):** `[sin φ, cos φ, speed]` → 24 angles. The training gaits come from the trainer's `target=` mode, refined from `ref10_2` at 6 target distances (`outputs/speed0*`).
    - **E:** inverse kinematics, 8 foot positions → 24 angles. It's handed to a teammate with the brief in `docs/nn_teammate_prompt.md`.
    - **Option A status:** done. Its write-up is `docs/nn_design.txt`, the model `part2_nn/models/speed_model.npz`, and the figures are in `outputs/nn_speed/`.
-     - It was trained on 8 GA speeds. Network gaits walk within 0.4–3% of the requested speed in Webots (7.5% at the slowest), including unseen speeds.
-     - Joint error on the held-out speed is 1.14°, against 1.04° for a simple blend of neighbouring gaits.
-     - The 5-speed first version is kept in `outputs/nn_speed_5speeds`.
-   - **PyTorch:** installed (CPU, user approved). The comparison is done: gradients agree to 4e-17.
+     - It's trained on 8 GA speeds made straight (`straight0xx_tuned`; see design.txt §7). Network gaits walk within 1–2% of the requested speed in Webots (6–7% at 0.117 and 0.300).
+     - Joint error on the held-out speed is 1.86°, against 1.90° for a simple blend of neighbouring gaits.
+     - Open loop the gaits still curve (up to 18° in 40 s). `gait_player ... "straight"` keeps them within 5 cm of their line.
+     - Earlier rounds are kept: 5 speeds (`nn_speed_5speeds`), and 8 curved speeds (`nn_speed_curved`, 1.14°).
+   - **PyTorch:** installed (CPU, user approved). The comparison is done: gradients agree to 6e-17.
    - **Done:** 3 more training speeds between 0.24 and 0.45, which cut the test error from 3.5° to 1.1°.
+   - **Done:** walking straight. The user saw network gaits curve. The fix was a steer gene, then a steer line search (`tune=`), then retraining, then heading feedback in `gait_player`.
 5. The group's contribution sheet.
+6. **Visuals:**
+   - `worlds/all_gaits.wbt`: 13 gaits side by side, with feedback.
+   - `ga_trainer replay=<run>`: replays how a run learned and records `outputs/<run>/learning.mp4`. The pi0 video exists locally but isn't committed (208 MB).
 
 ## Environment notes
 - Windows. Python 3.13 with numpy and matplotlib; Webots R2025a in `%LOCALAPPDATA%\Programs\Webots`.

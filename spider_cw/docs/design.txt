@@ -44,6 +44,12 @@ and backward with a hind leg: the two ends work against each other. Offsetting t
       tilt, against 1.34 m for the best shared gait under the same tilt rule (section 6).
     The thigh timing (the foot lift) stays shared, so all legs still lift in the same rhythm.
 
+STEER (encoding=steer, 13 genes: push-pull with pi forced + one steer gene in [-0.3, 0.3]).
+Left hips swing (1 + steer) x the hip amplitude, right hips (1 - steer), so one side takes longer
+strides; positive steer turns right. Mirroring makes every other encoding left/right symmetric,
+so it has no way to correct a curve that the physics adds; this gene is that way (section 7).
+With steer 0 it decodes to exactly the push-pull gait (gait.py self-check).
+
 Per-leg form, 26 real genes (encoding=legs) -> 300 frames x 24 motor angles (legs L1..L4,
 R4..R1; hip, thigh, knee).
     angle_j(t) = clip(offset_j + amp_j * sin(2 pi t / 300 + leg_phase + joint_phase_j), limits)
@@ -77,7 +83,7 @@ Each gait: restore the saved standing start state, 1.5 s to move into the gait's
 then 2 cycles of 2 s. Every physics step the supervisor records the body position and orientation
 and the 24 joint sensors; feet are placed with body.forward_kinematics of the MEASURED angles
 (exact for rigid links, and it sees legs blocked by self-collision).
-    score = forward - 0.5 |drift| - 0.5 |turn|
+    score = forward - 0.5 |drift| - turnw |turn|          (turnw 0.5; 5 for the straight family, section 7)
             - 5 x (fraction of the walk with the body centre below 0.25 m) - 2 x (dip below it)
             - 5 if it tipped past 60 degrees (evaluation stops)
             - 3 x (fraction of frames whose commanded pose makes legs touch)
@@ -86,7 +92,8 @@ and the 24 joint sensors; feet are placed with body.forward_kinematics of the ME
             - 0.3 per metre the feet slide while on the floor
             - 3 x mean body tilt beyond 4 deg (rad, nose up or down); trainer option pitch=0 removes it
 Each term answers a failure seen in Webots:
-    * forward is the goal; drift and turn keep it straight.
+    * forward is the goal; drift and turn keep it straight - over the 2 scored cycles only,
+      which was not enough (section 7).
     * Body height: with only a 2x dip penalty the first runs slid forwards on their bellies
       (lowest body height 0.14 m; the box is 0.3 tall). With the time-below penalty all runs
       keep the body >= 0.25 m.
@@ -159,7 +166,16 @@ for them.
 * Live: the trainer labels the Webots view with the generation, current evaluation and best
   distance, and replays the best gait of every generation in real time.
 * measure=<run> (trainer option): walks a saved gait and prints, per leg, the real foot lift,
-  time on the floor, slide distance and whether it steps.
+  time on the floor, slide distance and whether it steps; and the path: distance walked, sideways
+  offset, heading change, curvature (deg per metre), turning radius and how far it bows from a
+  straight line. The path is saved as outputs/<run>/track.csv; outputs/gait_paths.png plots the
+  20-cycle paths of the 13 main gaits on one figure.
+* replay=<run> (trainer option): walks the best gait of every generation where the best score
+  improved, in real time, captioned with generation, score, distance, tilt and legs stepping,
+  and records it as outputs/<run>/learning.mp4 (pi0: 30 improvements, ~3 min; the video is not
+  in the repository, it is 208 MB).
+* worlds/all_gaits.wbt: the 13 main gaits (GA references, other configurations, the best operator
+  run, two network gaits) walking side by side in 15 m lanes, with heading feedback.
 * part1_ga/plots.py on a saved run: best/mean/worst fitness, each measured component of the
   best, mutation sigma, the best pose at 4 points in the run, joint angles per leg, commanded
   foot heights with a footfall diagram, and a GIF.
@@ -196,7 +212,64 @@ Every run: all 8 legs step, no falls, no self-collision. Per-leg encodings left 
 touching the floor (6-24% of the time); shared and push-pull runs used every leg 50-85%.
 Older runs run0-2 (per-leg, slide weight 0.1): run1 3.79 m but 11.4 m of sliding, legs uneven.
 
-7. Limitations
+7. Walking straight
+-------------------
+Found by watching all gaits side by side (worlds/all_gaits.wbt): some walked into the next lane.
+Measured over 20 cycles (40 s; measure= with cycles=20), most GA gaits curve:
+    gait            heading change   turning radius   sideways at the end
+    pifree0          -0.0 deg         ~50 km           -0.22 m
+    shared1          +1.6             464 m            +0.41
+    pi0              -3.7             134 m            -0.46
+    ref10_2         +28.6             21 m             +2.60
+    pop80_s2        -63.7             20 m            -11.70   (outputs/operators, best operator run)
+    run1             +0.5             2 km             +1.14   (crabs sideways without turning)
+Why the GA did not stop it: each gait is scored over 2 cycles, where ref10_2 turned about 1 deg
+and pop80_s2 under 2 deg; the drift and turn terms (0.5 per m and per rad) cost almost nothing.
+The curve only shows over longer walks. The speed family refined from ref10_2 (speed015-090, the
+network's first training data, nn_design.txt section 2) inherited it: all 9 curved left,
+heading +1.6 to +33 deg over 20 cycles, radius 17-180 m, and so did the network trained on it.
+
+Fix, in three steps:
+1. Steer gene (section 2). Without it the encoding has no way to steer.
+2. Re-evolve each speed gait with it (encoding=steer, start=speed0xx, target = its measured
+   4-cycle distance, cycles=4, turnw=5, 40 generations; outputs/straight0xx). Every result turned
+   under 0.6 deg in the 4 scored cycles - and 3 to 33 deg over 20. The heading per cycle showed
+   why: e.g. straight075 -0.2, -1.2, -0.3, +0.1 (cycle 4), then +0.7, +2.2, +4.2 ... +33.3. The
+   start of a walk is a transient that wobbles, and the GA found gaits whose wobble happens to end
+   facing straight ahead at cycle 4; the steady turn that follows was never scored. Another loophole
+   of the kind in section 3: what is not measured gets exploited.
+3. Tune the steer gene alone (trainer option tune=<run>, outputs/straight0xx_tuned): walk the gait
+   12 cycles with steer -0.3 ... 0.3 (7 values), score the STEADY turn rate (slope of the heading
+   over cycles 4-12, the transient left out), then bracket the zero crossing (interpolation and
+   bisection, the response is not linear: straight075 +1.9 deg/cycle at steer 0, -1.0 at 0.1,
+   -1.8 at 0.2). Steer settled between +0.007 and +0.198, residual turn -0.64 to +0.35 deg/cycle.
+   Over 20 cycles the tuned family turns -7.5 to +2.9 deg (radius 66 m to 6 km), against +1.6 to
+   +33 deg (17-180 m) before. These are now the network's training data.
+A longer GA evaluation (e.g. 10 cycles) would make step 3 part of the GA, but would cost 2.5x the
+run time (the 4-cycle family already took ~3 hours with 9 runs in parallel).
+
+Heading feedback when playing a gait (gait_player, controllerArgs [<run>, <period>, "straight"]).
+The network's gaits still curved after retraining (up to 18 deg in 40 s): their joint-angle error
+(~1.9 deg) is as large as the steer correction itself (~1-2 deg of hip swing), so open-loop
+prediction cannot get the steer right. Real walking robots close the loop instead. The player
+does the same with the steer mechanism: the first 2 cycles set the line, then once per cycle
+steer = 1.0 x error + an integral term (0.5 x error per cycle, which learns each gait's steady
+curve), where error = travel direction over the last cycle minus the direction towards the line
+3 m ahead. The robot only has a GPS (an InertialUnit added to the proto crashed Webots on load),
+so the heading is the direction of travel. 20 cycles, sideways offset at the end:
+    gait                open loop   with feedback   forward (open -> feedback)
+    nn_speed_0.117      -0.21 m     +0.05 m          2.82 -> 2.87 m
+    nn_speed_0.240      -0.09       -0.03            5.13 -> 4.99
+    nn_speed_0.300      +1.05       +0.03            6.27 -> 6.32
+    nn_speed_0.357      -0.08       -0.01            7.82 -> 7.69
+    nn_speed_0.400      -0.69       -0.02            8.71 -> 8.73
+    nn_speed_0.451      -0.31       -0.01            9.73 -> 9.80
+    ref10_2             +3.02       -0.00           10.0  -> 10.5
+    pop80_s2           -12.5        -0.92 (oscillating, steer at its limit)   16.0 -> 10.6
+Every gait but pop80_s2 holds its line within 5 cm without losing speed. pop80_s2 curves more
+than the steer range (+-0.3) can cancel.
+
+8. Limitations
 --------------
 * Results vary a lot by seed: every configuration has a seed that only steps in place
   (0.0-0.3 m). 3 seeds per configuration is a small sample; the means above are rough.
@@ -204,6 +277,8 @@ Older runs run0-2 (per-leg, slide weight 0.1): run1 3.79 m but 11.4 m of sliding
   leans forward 12 deg.
 * Feet slide in every gait: one sine per joint cannot draw a flat stance stroke.
 * Each gait is scored over 2 cycles from a standing start; some looked fine over 2 cycles and
-  sank or slowed over 4 (shared2). Longer evaluations would catch that, at extra cost.
+  sank or slowed over 4 (shared2), and most curve over 20 (section 7). Longer evaluations would
+  catch that, at extra cost. Straight walking now comes from a separate steer tuning step and
+  from feedback at playback, not from the GA alone.
 * The footfall diagram in plots.py uses commanded angles in the body frame; measure= gives
   the real contacts.

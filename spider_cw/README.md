@@ -78,15 +78,23 @@ Every run is kept in `outputs/`.
 - a mutation rate of 0.2 beats 0.05 and 0.01 for this 12-gene encoding;
 - population 80 beats 40, which beats 20.
 
-Known weaknesses (`docs/design.txt` §7):
+**Walking straight** (`docs/design.txt` §7; plot: `outputs/gait_paths.png`). Over 20 cycles (40 s) most gaits curve, for example `ref10_2` turns 29° and the best operator run 64°.
+- **Why the GA missed it:** a gait is scored over 2 cycles, where the curve costs almost nothing.
+- **Steer gene:** `encoding=steer` (13 genes) makes one side's hips swing a little more, so a gait can correct its curve.
+- **The trap:** re-evolving the speed family over 4 cycles only found gaits whose start-up wobble ends straight at cycle 4.
+- **Tuning:** a line search on the steer gene alone (`tune=<run>`) against the steady turn rate made them straight. Turning radius went from 17–180 m to 66 m–6 km.
+- **Heading feedback:** `gait_player` with `"straight"` keeps any gait within 5 cm of its line, except the best operator run, which curves harder than the steer gene can correct.
+
+Known weaknesses (`docs/design.txt` §8):
 - Results vary a lot by seed.
 - `pi0` slides a lot, and `shared1` leans.
+- Open loop, most gaits curve over long walks.
 
 ## Part 2: neural network (`part2_nn/`)
 A network written from scratch in numpy (`part2_nn/nn.py`): forward and backward passes, MSE loss, SGD with momentum, Adam, mini-batches, early stopping, weight decay, save/load and a gradient check. Its main job is option A:
 - **Input:** `[sin φ, cos φ, speed]`, i.e. where the spider is in its step cycle plus how fast to walk.
 - **Output:** the 24 motor angles.
-- **Training data:** a family of 9 GA gaits evolved at different target speeds (trainer `target=` mode, refined from `ref10_2`). One whole speed is held out as the test.
+- **Training data:** a family of 9 GA gaits at different speeds. They were evolved with the trainer's `target=` mode, refined from `ref10_2`, and then made straight (`straight0xx_tuned`). One whole speed is held out as the test.
 
 ```bash
 python -m part2_nn.train_speed      # experiments + final model -> part2_nn/models/speed_model.npz
@@ -96,9 +104,13 @@ python -m part2_nn.compare_pytorch  # the same network in PyTorch (needs torch)
 ```
 
 **Results** (`docs/nn_design.txt` covers every item the spec requires):
-- **Speed control:** network gaits walk in Webots within 0.4–3% of the requested speed (7.5% at the slowest). That includes speeds no gait existed for (0.30 → 0.298, 0.40 → 0.394 m per cycle) and the held-out test speed (0.357 → 0.369).
-- **Joint angles:** on the held-out speed they are 1.14° RMSE from the GA gait, close to simply blending the two nearest gaits (1.04°).
-- **Training speeds:** the first version (5 speeds) was 3.5° off. Adding 3 gaits in the gap around the test speed fixed it, and that version is kept for comparison.
-- **Against PyTorch:** gradients agree to 4×10⁻¹⁷, and both reach the same final loss (5.560229×10⁻⁵).
+- **Speed control:** network gaits walk in Webots within 1–2% of the requested speed, except 6–7% at 0.117 and 0.300 m per cycle.
+- **Joint angles:** on the held-out speed they are 1.86° RMSE from the GA gait, slightly better than simply blending the two nearest gaits (1.90°).
+- **Walking straight:** open loop the network's gaits still curve, up to 18° in 40 s, because their joint error is as large as the steer correction. With the player's heading feedback, every one ends within 5 cm of its line at the same speed.
+- **Three rounds,** all kept for comparison:
+  1. 5 curved training speeds: 3.5° error.
+  2. 3 more speeds in the gap around the test speed: 1.14°, but the gaits curved like their training data.
+  3. The same 8 speeds made straight (final): 1.86°.
+- **Against PyTorch:** gradients agree to 6×10⁻¹⁷, and both reach the same final loss (1.634255×10⁻⁴).
 
 Option E (inverse kinematics) is a teammate's part; their brief is `docs/nn_teammate_prompt.md`.
