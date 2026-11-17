@@ -8,7 +8,9 @@ outputs/nn_speed/. Earlier versions are kept for comparison:
     round 3 (final), 8 straight gaits  models/speed_model.npz, outputs/nn_speed/, nn_speed_*
 Rounds 1-2 learned from GA gaits that curve left (radius 17-180 m over 40 s), and their network
 gaits curved too (design.txt section 7); round 3 learns from the same gaits made straight.
-Option E (inverse kinematics) is a teammate's part: docs/nn_teammate_prompt.md.
+Option E (inverse kinematics) is the teammate's part (part2_nn/ik/, brief docs/nn_teammate_prompt.md);
+its networks, their comparison and the foot-path gaits built on it are in docs/ik_comparison.md and
+docs/build_guide.md section 2.8. Every decision across both parts is listed in docs/decisions.md.
 
 1. The task, and input/output format
 ------------------------------------

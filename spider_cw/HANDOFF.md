@@ -23,6 +23,10 @@
   - front and hind legs working against each other.
 - The world is set to train live: `ga_trainer`, with `encoding=pushpi`, seed 0, population 40 and 100 generations, saving to `outputs/live`. These settings reproduce pi0.
 
+**Docs:**
+- `docs/decisions.md`: every decision, why it was made and what it changed.
+- `docs/build_guide.md`: the hand-coding recipe for the best setups, including the foot-path gaits (§1.8) and the IK network (§2.8).
+
 ## Next steps
 1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §9).
    - **Best gait now:** `outputs/footwide_s2`, made with `encoding=footwide`. The GA tunes the foot paths and the per-leg IK network turns them into angles. It walks 6.55 m in 4 cycles (pi0: 2.05 m; the narrower `foot_t14_s1`: 4.10 m) and 33.3 m in 40 s. See design.txt §8.

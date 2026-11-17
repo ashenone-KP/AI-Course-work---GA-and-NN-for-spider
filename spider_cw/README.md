@@ -44,6 +44,9 @@ Install everything with `python -m pip install -r ../requirements.txt` (numpy, m
 | `../Spider_world_demo/controllers/gait_player/` | plays a saved gait |
 | `docs/design.txt` | encoding, fitness, GA and visualisation choices, with the evidence behind each |
 | `docs/build_guide.md` | both parts as a recipe: every choice, the current best setup and the exact formulas, enough to re-implement them by hand |
+| `docs/decisions.md` | every decision in the project, why it was made and what it changed, with numbers |
+| `docs/ik_comparison.md` | option E: whole-body vs per-leg IK network, the full-range model, and the foot-path gaits |
+| `part2_nn/ik/` | option E: IK data, training, plots, PyTorch comparison, `gait_test.py` (real gaits through the networks), `foot_gait.py` (spider foot paths → gaits; the `foot`/`footwide` decoder) |
 
 ## Outputs (`outputs/<name>/`)
 | File | Content |
@@ -54,9 +57,11 @@ Install everything with `python -m pip install -r ../requirements.txt` (numpy, m
 | `*.png`, `gait.gif` | written by `part1_ga.plots` |
 
 ## Results
-Headless runs, population 40, 100 generations, 3 seeds per configuration. Distances are measured over 4 cycles (8 s). No run fell over or self-collided.
+**Best gait overall:** `footwide_s2`. The GA tunes spider-like foot paths and the Part 2 per-leg IK network turns them into joint angles. It walks **6.55 m in 4 cycles** (pi0: 2.05 m) with 2.46 m of foot sliding (pi0: 7.75 m), and 33.3 m in 40 s within 1° of its heading. Details are below and in `docs/design.txt` §8; every decision that led here is in `docs/decisions.md`.
 
-The two reference gaits:
+The joint-sine runs below were headless: population 40, 100 generations, 3 seeds per configuration. Distances are measured over 4 cycles (8 s). No run fell over or self-collided.
+
+The two reference joint-sine gaits:
 
 | run | how | forward | body tilt | foot sliding |
 |---|---|---|---|---|

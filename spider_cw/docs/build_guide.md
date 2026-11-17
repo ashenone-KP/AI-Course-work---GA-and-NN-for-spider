@@ -1,12 +1,15 @@
 # Build guide: the spider GA and neural network, from scratch
 
-This guide explains every design choice and gives the current best setup for both parts. It is detailed enough to re-implement both parts by hand. The full reasoning and evidence are in `design.txt` (Part 1) and `nn_design.txt` (Part 2); this guide is the recipe.
+This guide explains every design choice and gives the current best setup for both parts. It is detailed enough to re-implement both parts by hand. The full reasoning and evidence are in `design.txt` (Part 1), `nn_design.txt` (Part 2, option A) and `ik_comparison.md` (option E). Every decision and what it changed is listed in `decisions.md`; this guide is the recipe.
 
 ```
 Part 1  chromosome (12-13 numbers) --decode--> gait: 300 frames x 24 angles --walk in Webots--> score
         GA: population of chromosomes -> select, cross, mutate -> better gaits
-Part 2  GA gaits at 9 speeds --> dataset ([sin, cos, speed] -> 24 angles) --> MLP 3-64-64-24
+Part 2A GA gaits at 9 speeds --> dataset ([sin, cos, speed] -> 24 angles) --> MLP 3-64-64-24
         network(speed) --> new gait --> walk in Webots (with heading feedback)
+Part 2E random poses --FK--> (foot, angles) pairs --> per-leg MLP 3-64-64-3: foot -> 3 joint angles
+Best    GA chromosome (7 foot-path settings) --> 300 x 8 foot targets --per-leg IK net--> gait --> Webots
+        (sections 1.8 and 2.8: the GA from Part 1 driving the network from Part 2)
 ```
 
 ---
@@ -100,8 +103,9 @@ score = forward - 0.5|drift| - 0.5|turn|
         - (5*low_time + 2*max(0, 0.25 - min_height))      # sliding on the belly
         - 5*fell - 3*collision_fraction
         + 0.5*lift - 0.4*idle_legs - 0.3*slide
-        - 3*max(0, pitch - 0.07)                          # 4 deg of tilt is free
+        - 3*max(0, pitch - tilt)                          # tilt = 0.07: 4 deg is free (option tilt=)
 ```
+(The foot-path runs use `cycles=4` and `tilt=0.14`; see §1.8.)
 6. **Self-collision pre-check** (`body.py`): run the commanded frames through forward kinematics and model each segment as a capsule.
    - A frame "collides" if a segment comes within the two radii + 2 cm of the next or next-but-one leg, or a thigh or tibia enters the body box.
    - If more than 20% of frames collide, the gait is skipped (not simulated).
@@ -136,7 +140,9 @@ for gen = 0..G:
 - **Adaptive sigma:** big steps early to explore, small steps late to fine-tune.
 - **Wrap, not clip, for phases:** 2π + 0.1 is the same gait as 0.1.
 
-### 1.5 Current best setup (Part 1)
+### 1.5 Best joint-sine setup (Part 1)
+The best gait *overall* is now the foot-path gait in §1.8; this is the best gait made purely from joint sines.
+
 | | |
 |---|---|
 | **Encoding** | `pushpi` (12 genes) |
@@ -181,6 +187,59 @@ every cycle after that:
 - **`replay=<run>`:** a captioned video of the improving generations.
 - **`measure=<run>`:** per-leg lift, slide and stepping, plus path curvature.
 - **`all_gaits.wbt`:** all main gaits side by side.
+
+### 1.8 Best setup: foot-path gaits (the GA tunes foot paths, the IK network makes angles)
+**Why:** a joint sine can't draw a flat stance stroke, so every sine gait's feet slide (pi0: 7.75 m in 4 cycles). A real spider does it the other way round: a planted foot stays still on the ground while the body passes over it, then lifts and swings forward. With the per-leg IK network (§2.8) that can be written down directly, as foot paths, and the GA only has to tune 7 numbers that each mean something physical.
+
+**Neutral feet** (each leg's average foot position over pi0's cycle, body frame: x forward, y left, metres):
+
+| leg | L1 | L2 | L3 | L4 | R4 | R3 | R2 | R1 |
+|---|---|---|---|---|---|---|---|---|
+| x̄ | 0.8163 | 0.2033 | −0.3628 | −0.8117 | −0.8223 | −0.3699 | 0.2036 | 0.8247 |
+| ȳ | 1.2283 | 1.3356 | 1.2876 | 1.2211 | −1.2258 | −1.2945 | −1.3485 | −1.2387 |
+
+**Decode a 7-gene chromosome** `(stride S, lift H, duty d, height h, reach r, spread p, wave w)`:
+```
+group    = (0, 1, 0, 1, 0, 1, 0, 1)        for L1 L2 L3 L4 R4 R3 R2 R1  (L1 L3 R4 R2 step together)
+position = (0, 1, 2, 3, 3, 2, 1, 0)        front pair = 0 .. hind pair = 3
+for frame k = 0..299, leg i:
+    u = (k/300 + 0.5*group_i + w*position_i) mod 1          # where this leg is in its own step
+    if u < d:                                                # stance: foot on the ground
+        s  = u/d;            dx = S/2 - S*s;   dz = 0       # straight back at constant speed
+    else:                                                    # swing: foot in the air
+        s  = (u-d)/(1-d);    m = -S*(1-d)/d                  # m = stance speed in swing-time units
+        dx = -S/2*(2s^3 - 3s^2 + 1) + S/2*(-2s^3 + 3s^2) + m*(s^3 - 2s^2 + s) + m*(s^3 - s^2)
+        dz = H*sin(pi*s)
+    foot_i(k) = (p*x̄_i + dx,  r*ȳ_i,  h + dz)
+angles(k) = per-leg IK network (§2.8) on every foot, clipped to the motor limits -> 300 x 24 gait
+```
+- **The swing curve** is a cubic Hermite curve: it starts and ends with the stance's backward speed `m`, so the foot is still over the ground at lift-off and touch-down. A half-cosine landed the foot moving forward at body speed, and it skidded.
+- **The ripple:** with `w > 0`, each pair steps `w` of a cycle after the pair behind it, a back-to-front wave like a real spider's. With `w = 0` it is two rigid groups of four.
+- **Ideal speed** with no slipping is `S/d` metres per cycle.
+
+**Genes and bounds** (`encoding=footwide`; `encoding=foot` is the first, narrower version):
+
+| gene | footwide bounds | (foot) | footwide_s2 | why the bound |
+|---|---|---|---|---|
+| stride S (m) | 0.10–0.90 | 0.10–0.60 | 0.900 | long strides collide unless reach/spread grow |
+| lift H (m) | 0.04–0.45 | 0.04–0.30 | 0.381 | low swings brush the floor |
+| duty d | 0.35–0.85 | 0.45–0.80 | 0.522 | share of the cycle each foot is down |
+| height h (m) | −0.68 to −0.38 | −0.68 to −0.50 | −0.380 | lower is out of the legs' reach |
+| reach r | 0.78–1.10 | 0.85–1.10 | 0.881 | > 1.10 out of reach; < 0.78 the IK errs 15+ cm |
+| spread p | 0.85–1.40 | 0.85–1.15 | 1.400 | past 1.40 the IK errs (22 cm at 1.45) |
+| wave w | 0.00–0.25 | 0.00–0.15 | 0.232 | |
+
+**The bounds stop where the IK network stops being accurate:** past them the GA would be rewarded for the network's mistakes, not for better foot paths.
+
+**GA settings for the best run:** the same GA as §1.4, with population 40, 50 generations, `cycles=4`, mutation rate 0.2 (the operator experiments' best for small encodings), `tilt=0.14`, seed 2. All genes are ordinary (clipped, none wrap). Run it with `controllerArgs ["encoding=footwide" "pop=40" "gens=50" "cycles=4" "mrate=0.2" "tilt=0.14" "seed=2" "name=footwide_s2"]`.
+
+| | 4 cycles | foot sliding | pitch | 20 cycles (40 s) |
+|---|---|---|---|---|
+| **`footwide_s2`** | **6.55 m** | **2.46 m** | 0.010 | **33.3 m, heading +0.8°** |
+| `foot_t14_s1` (narrow bounds) | 4.10 m | 3.30 m | 0.015 | 20.3 m, +2.0° |
+| `pi0` (joint sines) | 2.05 m | 7.75 m | 0.059 | n/a |
+
+No falls and no leg contact. `footwide_s2` was still improving at its last generation, and stride, height and spread are on their bounds.
 
 ---
 
@@ -259,6 +318,51 @@ play in Webots with gait_player [<run>, 2.0, "straight"]
 | **Straightness** | open loop up to 18° in 40 s; with feedback within 5 cm of the line |
 | **PyTorch** | same initial weights and batches: identical final loss 1.634255e−4; numpy 2.3 s, torch 7.0 s |
 
+### 2.8 Option E: the per-leg inverse-kinematics network
+**Task:** given where a foot should be, output that leg's 3 joint angles. This is what turns §1.8's foot paths into a gait. It was the teammate's part (`part2_nn/ik/`); we ran the full training and chose between their two networks.
+
+**Data** (`ik_data.py`), made with forward kinematics, so it is exact and unlimited:
+1. Draw 50,000 random poses. For each leg independently: hip in [−1.2, 1.2], thigh in [−1.5, 0], knee in [−0.5, 1]. Right legs get the negated angles (mirror).
+2. Compute every foot with the forward kinematics.
+3. Split 40,000 for training, 5,000 for validation (early stopping, model choice) and 5,000 for the test, used once.
+4. **One sample per leg:**
+   - input: the foot relative to its own hip, `foot − hip`, with y negated for right legs;
+   - target: that leg's 3 angles, negated for right legs.
+   After mirroring, every leg is the same problem, so this gives 320,000 training samples for one small network.
+
+**Scaling:**
+```
+input:  x = (rel_foot - mean) / std        mean (-0.0004, 0.9628, -0.2810), std (0.4642, 0.3086, 0.3063)
+                                            (training feet only)
+output: y = 2*(angle - lo)/(hi - lo) - 1     lo = (-1.5708, -1.5708, -2), hi = (1.5708, 1.5708, 1)
+        angle = lo + (y + 1)/2 * (hi - lo)   tanh output -> always a legal left-leg angle
+use it: for each leg, rel = foot - hip; if right: rel.y = -rel.y
+        angles = unscale(net((rel - mean)/std)); if right: angles = -angles
+```
+
+**Network and training:**
+- **Shape:** `3 → 64 → 64 → 3`, tanh hidden and output layers, Xavier initialisation, MSE loss.
+- **Optimiser:** Adam, lr 0.001, batch 512, the same core and backpropagation as §2.4–2.5.
+- **Stopping:** at most 500 epochs; stop after 40 epochs without improvement on validation and keep the best weights. Its best epoch was 270.
+- **Gradient check:** relative error 4.8e−7.
+
+**Why per-leg** rather than one 24 → 24 network for all 8 feet (best found: 128 × 128, Adam 0.001, batch 64):
+- **The problem really is per leg.** A leg's angles depend only on its own foot; the whole-body network has to discover that 21 of its 24 inputs don't matter for each output.
+- **More data, fewer weights:** mirroring gives one problem with 8× the data, using 5× fewer weights (4,611 against 22,808).
+
+| | whole-body | **per-leg** |
+|---|---|---|
+| random test poses: mean / 95% foot error | 3.67 / 8.23 cm | **0.50 / 1.30 cm** |
+| real GA gaits rebuilt: mean foot error | 6.94 cm | **2.79 cm** |
+| rebuilt gaits walked in Webots: distance kept | 89% | **101%** |
+
+**Judge by foot error, not angle error.** When a foot is near its hip's rotation axis, many hip angles put it in the same place. The per-leg hip error is 4.3° there, but the foot still lands within 0.6 cm.
+
+**The third model** (`train --leg-motor`) draws training poses from the full motor range (hip ±1.57, thigh [−1.57, 0], knee [−1, 1]).
+- **Gain:** it handles poses outside the original range (shared1's worst feet: 35 cm → 2.3 cm).
+- **Cost:** it is less precise inside the range (1.1 cm against 0.26 cm on the foot paths).
+- **Use:** the foot-path gaits use the original-range model, because all their targets lie inside its range.
+
 ---
 
 ## Building it yourself: order and checks
@@ -269,3 +373,5 @@ play in Webots with gait_player [<run>, 2.0, "straight"]
 5. **Fitness terms one at a time,** watching the best gait in Webots after each. Every term in §1.3 exists because something looked wrong.
 6. **MLP plus the gradient check** before any real training.
 7. **Dataset and leave-one-speed-out experiments,** then the final model, then gaits walked in Webots.
+8. **IK data and the per-leg network** (§2.8). Check that the exact angles give 0 foot error through the forward kinematics, that a mirrored right leg gives the same relative foot as its left leg, and that the trained network lands test feet within about 0.5 cm.
+9. **Foot paths** (§1.8). Check that each foot is down for a share `d` of the cycle, that L1, L3, R4 and R2 move together when `w = 0`, and that the swing lands at the stance's speed. Then the GA with `encoding=footwide`.
