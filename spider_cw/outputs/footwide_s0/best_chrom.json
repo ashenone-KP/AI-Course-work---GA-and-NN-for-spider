@@ -1,0 +1,52 @@
+{
+ "fitness": 6.248715934167315,
+ "generation": 50,
+ "components": {
+  "forward": 6.829176841065707,
+  "drift": 0.18878021687880797,
+  "turn": 0.025805754334430553,
+  "min_height": 0.24720819552177847,
+  "low_time": 0.012,
+  "fell": 0.0,
+  "lift": 1.0,
+  "idle_legs": 0.0,
+  "slide": 2.8586143744511023,
+  "pitch": 0.013462984533453072,
+  "nose_down": 0.0053155136131368625,
+  "skipped": 0.0,
+  "collision": 0.016666666666666666
+ },
+ "options": {
+  "pop": 40,
+  "gens": 50,
+  "seed": 0,
+  "period": 2.0,
+  "cycles": 4,
+  "show": 0,
+  "name": "footwide_s0",
+  "selftest": 0,
+  "measure": null,
+  "encoding": "footwide",
+  "pitch": 1,
+  "slip": 0.3,
+  "start": null,
+  "target": null,
+  "selection": "tournament",
+  "crossover": "blend",
+  "adaptive": 1,
+  "mrate": 0.2,
+  "turnw": 0.5,
+  "tune": null,
+  "replay": null,
+  "tilt": 0.14
+ },
+ "chromosome": [
+  0.9,
+  0.39019145729616206,
+  0.4973214244620766,
+  -0.38428616221199985,
+  0.8561698046142973,
+  1.3991286116927402,
+  0.2274600243765209
+ ]
+}

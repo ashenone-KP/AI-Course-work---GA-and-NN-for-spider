@@ -11,7 +11,8 @@ controllerArgs as key=value, e.g.  [ "pop=24" "gens=40" "seed=0" "name=run0" ]:
                               at pi (front legs pull, hind legs push); "steer": pushpi plus a gene that
                               swings one side's hips more than the other's, 13 genes; "legs": per-leg, 26 genes;
                               "foot": 7 foot-path genes (stride, lift, duty, height, reach, spread, wave) turned
-                              into joint angles by the per-leg IK network (part2_nn/ik/foot_gait.py)
+                              into joint angles by the per-leg IK network (part2_nn/ik/foot_gait.py);
+                              "footwide": the same genes with wider bounds (FOOT_WIDE_LOW/HIGH there)
     turnw 0.5                 penalty per rad of heading change over the evaluation
     pitch 1                   1: penalise body tilt beyond `tilt`; 0: no tilt term
     tilt 0.07                 body tilt (rad, mean) that is free; the default PITCH_FREE keeps the old runs
@@ -90,9 +91,11 @@ SLIP_PENALTY = 0.3          # per metre feet slide while on the floor. Was 0.1: 
                             # big weight would make standing still the best option
 
 
-def foot_bounds():
-    """encoding=foot gene bounds (gait.decode sends 7-gene chromosomes to the per-leg IK network)."""
+def foot_bounds(wide=False):
+    """encoding=foot / footwide gene bounds (gait.decode sends 7-gene chromosomes to the per-leg IK network)."""
     from part2_nn.ik import foot_gait
+    if wide:
+        return foot_gait.FOOT_WIDE_LOW, foot_gait.FOOT_WIDE_HIGH, foot_gait.FOOT_WRAP
     return foot_gait.FOOT_LOW, foot_gait.FOOT_HIGH, foot_gait.FOOT_WRAP
 
 
@@ -120,8 +123,8 @@ def parse_args(argv):
             raise SystemExit(f"ga_trainer: unknown option {key!r}; known: {', '.join(opts)}")
         opts[key] = (value if key in ("name", "measure", "tune", "replay", "encoding", "start", "selection", "crossover")
                      else float(value) if key in ("period", "slip", "target", "mrate", "turnw", "tilt") else int(value))
-    if opts["encoding"] not in ("shared", "pushpull", "pushpi", "steer", "legs", "foot"):
-        raise SystemExit("ga_trainer: encoding must be shared, pushpull, pushpi, steer, legs or foot")
+    if opts["encoding"] not in ("shared", "pushpull", "pushpi", "steer", "legs", "foot", "footwide"):
+        raise SystemExit("ga_trainer: encoding must be shared, pushpull, pushpi, steer, legs, foot or footwide")
     if opts["selection"] not in ("tournament", "roulette") or opts["crossover"] not in ("uniform", "two_point", "blend"):
         raise SystemExit("ga_trainer: selection = tournament|roulette, crossover = uniform|two_point|blend")
     opts["name"] = opts["name"] or f"run{opts['seed']}"
@@ -270,7 +273,7 @@ class Trainer:
         cfg = GAConfig(pop_size=o["pop"], generations=o["gens"], stall_generations=o["gens"], seed=o["seed"],
                        selection=o["selection"], crossover=o["crossover"], adaptive_mutation=bool(o["adaptive"]),
                        mutation_rate=o["mrate"])
-        bounds = foot_bounds() if o["encoding"] == "foot" else None
+        bounds = foot_bounds(o["encoding"] == "footwide") if o["encoding"].startswith("foot") else None
         low, high, wrap = bounds or {"shared": (gait.SHARED_LOW, gait.SHARED_HIGH, gait.SHARED_WRAP),
                            "pushpull": (gait.PUSHPULL_LOW, gait.PUSHPULL_HIGH, gait.PUSHPULL_WRAP),
                            "pushpi": (np.append(gait.SHARED_LOW, np.pi), np.append(gait.SHARED_HIGH, np.pi),

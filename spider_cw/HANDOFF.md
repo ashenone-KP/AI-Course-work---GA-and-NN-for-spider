@@ -25,8 +25,8 @@
 
 ## Next steps
 1. **Optional:** reduce pi0's foot sliding. Run more seeds per configuration, because results vary a lot by seed (see design.txt §9).
-   - **Best gait now:** `outputs/foot_t14_s1`, made with `encoding=foot`. The GA tunes the foot paths and the per-leg IK network turns them into angles. It walks 4.10 m in 4 cycles (pi0: 2.05 m) with less than half the sliding. See design.txt §8.
-   - Most of its genes ended at their bounds, so a run with wider bounds is the obvious next step.
+   - **Best gait now:** `outputs/footwide_s2`, made with `encoding=footwide`. The GA tunes the foot paths and the per-leg IK network turns them into angles. It walks 6.55 m in 4 cycles (pi0: 2.05 m; the narrower `foot_t14_s1`: 4.10 m) and 33.3 m in 40 s. See design.txt §8.
+   - Spread is at the edge of where the IK network is accurate. Going further means training the IK network on those foot positions first.
 2. ~~Operator experiments in physics~~ Done: `outputs/operators/`, `docs/design.txt` §4. They suggest a mutation rate of about 0.2 for the 12-gene encoding.
 3. **Optional:** draw the footfall diagram from measured contacts (the trainer's `measure=` already prints them) instead of commanded angles.
 4. **Part 2 (in progress):** options A + E, sharing the from-scratch numpy core `part2_nn/nn.py`. Its self-check passes: gradient check, SGD and Adam convergence, save/load.

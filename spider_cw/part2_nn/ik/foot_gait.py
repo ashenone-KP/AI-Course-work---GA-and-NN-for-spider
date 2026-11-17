@@ -97,6 +97,13 @@ FOOT_GENES = ("stride", "lift", "duty", "height", "reach", "spread", "wave")
 FOOT_LOW = np.array([0.10, 0.04, 0.45, -0.68, 0.85, 0.85, 0.00])
 FOOT_HIGH = np.array([0.60, 0.30, 0.80, -0.50, 1.10, 1.15, 0.15])
 FOOT_WRAP = np.zeros(len(FOOT_GENES), bool)
+# encoding=footwide: the foot_t14 runs ended with stride, lift, height and spread at their upper bounds and
+# reach at its lower one. Widened as far as the per-leg network stays accurate on the best gait's
+# neighbours: reach < 0.78 brings feet near the hip axis (15+ cm IK error at 0.65) and > 1.10 is out of
+# the legs' reach (7+ cm at 1.15); spread 1.40 is past the accurate zone (22 cm worst at 1.45), so the GA
+# pays in physics for going there. Long strides collide unless reach/spread grow too: the GA trades them.
+FOOT_WIDE_LOW = np.array([0.10, 0.04, 0.35, -0.68, 0.78, 0.85, 0.00])
+FOOT_WIDE_HIGH = np.array([0.90, 0.45, 0.85, -0.38, 1.10, 1.40, 0.25])
 _MODEL = []                                           # the per-leg network, loaded once per process
 
 

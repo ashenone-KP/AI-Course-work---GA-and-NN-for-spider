@@ -314,6 +314,29 @@ less than over 2), mutation rate 0.2 (section 4: best for small encodings), tilt
 * The hind feet dip ~2.5 cm below ground level at the end of stance (foot_heights.png): targets
   far back at that height are near the edge of reach.
 
+Wider bounds (encoding=footwide, part2_nn/ik/foot_gait.py FOOT_WIDE_LOW/HIGH). Each gene that hit a
+bound was widened only as far as the per-leg network stays accurate, otherwise the GA would be
+rewarded for IK errors: stride 0.9, lift 0.45, duty 0.35-0.85, height -0.38, spread 1.40 (22 cm
+worst IK error at 1.45), reach 0.78-1.10 (15+ cm error near 0.65: feet near the hip axis; 1.15 is
+out of the legs' reach), wave 0.25. Same settings, 3 random seeds plus one refining foot_t14_s1:
+    run                forward (4 cycles)  slide   IK error mean/worst   20 cycles: forward, heading, sideways
+    footwide_s2        6.55 m              2.46 m  0.62 / 8.6 cm         33.3 m, +0.8 deg, +0.74 m
+    footwide_s0        6.83 m              2.86 m  0.86 / 15.0 cm        34.7 m, -2.8 deg, -0.11 m
+    footwide_s1        5.56 m              3.49 m  0.78 / 16.5 cm
+    footwide_from_t14  4.40 m              3.13 m  0.67 / 9.7 cm
+    foot_t14_s1        4.10 m              3.30 m  0.43 / 4.1 cm         20.3 m, +2.0 deg, +0.78 m
+* 60% further than the narrow-bounds best (33 m in 40 s, ~1.7 m per cycle) with less sliding; level
+  (pitch 0.010), no fall. The random starts found a different region (stride 0.85-0.90, body lower
+  at -0.38 to -0.42, hind/front feet spread to 1.40, ripple 0.14-0.23); refining the old best
+  stayed near it (4.40 m): the narrow bounds had been hiding the better gaits.
+* footwide_s2 is taken as the best, not the 4% faster s0: its feet are where the foot paths say
+  (worst 8.6 cm vs 15 cm), it slides less, no legs touch (s0: 2% of frames) and its body stays at
+  0.27 m (s0 dips to exactly the 0.25 m low-body limit).
+* stride, height and spread are at their bounds again. Stride and height could go further, but
+  spread 1.40 is already at the edge of the IK network's accurate zone (the hind feet now dip
+  ~4.5 cm at the end of stance), so more spread first needs an IK network trained on those foot
+  positions.
+
 9. Limitations
 --------------
 * Results vary a lot by seed: every configuration has a seed that only steps in place

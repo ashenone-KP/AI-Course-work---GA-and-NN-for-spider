@@ -10,7 +10,7 @@ Version 1 scored gaits on a no-physics model of the lecturer's MATLAB spider. Th
    - The on-screen label shows the generation and "evaluating i/40". After each generation the best gait is replayed in real time.
    - Everything is saved to `outputs/<name>/` after every generation, so stopping early loses nothing.
    - The other options (`encoding=shared|pushpi|pushpull|steer|legs|foot`, `pitch=0` to drop the tilt rule, `tilt=<rad>` for how much tilt is free, `start=<run>` to refine a saved gait, `slip=<weight>`, `period`, `cycles`, `show=0` for headless) are listed at the top of `controllers/ga_trainer/ga_trainer.py`.
-   - **Best gait so far:** `encoding=foot`: the GA tunes spider-like foot paths and the Part 2 per-leg network turns them into joint angles. `["encoding=foot" "pop=40" "gens=50" "cycles=4" "mrate=0.2" "tilt=0.14" "seed=1" "name=foot_t14_s1"]` reproduces it.
+   - **Best gait so far:** `encoding=footwide`: the GA tunes spider-like foot paths and the Part 2 per-leg network turns them into joint angles. `["encoding=footwide" "pop=40" "gens=50" "cycles=4" "mrate=0.2" "tilt=0.14" "seed=2" "name=footwide_s2"]` reproduces it.
 2. **Check each leg:** set `controllerArgs ["measure=pi0" "cycles=4"]`. It walks that run's best gait and prints, per leg, the foot lift, time on the floor, slide distance and whether the leg steps.
 3. **Plots:**
    ```bash
@@ -91,6 +91,7 @@ Every run is kept in `outputs/`.
 - `foot_t14_s1` walks **4.10 m in 4 cycles** with 3.3 m of foot sliding and a level body, against pi0's 2.05 m and 7.75 m.
 - Over 20 cycles it walks 20.3 m, heading within 2°.
 - Two seeds found nearly the same genes, including a spider-like back-to-front ripple.
+- **Wider bounds** (`encoding=footwide`), widened only as far as the IK network stays accurate: `footwide_s2` walks **6.55 m in 4 cycles** with 2.5 m of sliding, and 33.3 m over 20 cycles within 1° of its heading.
 
 Known weaknesses (`docs/design.txt` §9):
 - Results vary a lot by seed.

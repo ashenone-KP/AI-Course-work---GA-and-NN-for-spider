@@ -146,7 +146,9 @@ reach, spread, back-to-front ripple), each candidate decoded through this per-le
 in Webots. Best run `outputs/foot_t14_s1`: **4.10 m in 4 cycles** (sweep best 2.53 m, pi0 2.05 m) with
 3.30 m of sliding, pitch 0.015, no leg contact; 20.3 m over 20 cycles holding its heading within 2°.
 Two seeds converged on nearly the same genes, including a ripple (each pair steps 0.13 of a cycle
-after the pair behind it), the way real spiders walk.
+after the pair behind it), the way real spiders walk. With bounds widened as far as this network
+stays accurate (`encoding=footwide`), `outputs/footwide_s2` walks **6.55 m in 4 cycles** and 33.3 m in
+40 s with 2.46 m of sliding; its spread now sits at the edge of the network's accurate zone.
 
 ## Reproduce
 ```bash
