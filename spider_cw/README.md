@@ -42,6 +42,7 @@ Install everything with `python -m pip install -r ../requirements.txt` (numpy, m
 | `../Spider_world_demo/controllers/ga_trainer/` | the GA running in Webots: physics fitness, per-leg measurement, live replay, saving |
 | `../Spider_world_demo/controllers/gait_player/` | plays a saved gait |
 | `docs/design.txt` | encoding, fitness, GA and visualisation choices, with the evidence behind each |
+| `docs/build_guide.md` | both parts as a recipe: every choice, the current best setup and the exact formulas, enough to re-implement them by hand |
 
 ## Outputs (`outputs/<name>/`)
 | File | Content |
